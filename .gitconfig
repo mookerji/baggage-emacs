@@ -1,0 +1,21 @@
+# https://git.wiki.kernel.org/index.php/Aliases
+[user]
+	name = Bhaskar Mookerji
+	email = mookerji@gmail.com
+[core] 
+    editor = nano
+[alias]
+	ci = commit -am
+	gr = grep --color -n 
+	a = add
+	cbr = checkout -b 
+	co = checkout 
+	br = branch -av --color
+	l = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative
+	st = status
+	d = diff --color
+	stash = stash --color
+	s = show --color
+
+[credential]
+	helper = osxkeychain
