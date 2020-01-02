@@ -16,4 +16,5 @@ In `~/.emacs`:
 (load "~/.emacs.d/init.el")
 ```
 
-Tested with [Emacs for OSX](https://emacsformacosx.com/).
+NOTES:
+- Tested with [Emacs for OSX](https://emacsformacosx.com/).
