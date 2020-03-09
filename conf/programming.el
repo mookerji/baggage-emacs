@@ -100,6 +100,13 @@
 (use-package cmake-mode
   :mode ("CMakeLists.txt" "\\.cmake\\'"))
 
+(use-package make-mode
+  :config
+  (whitespace-toggle-options '(tabs))
+  (setq indent-tabs-mode t))
+
+
+
 ;; Protocol Buffers mode
 
                                         ; FIX

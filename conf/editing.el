@@ -228,6 +228,12 @@
 (use-package undo-tree)
 (use-package whitespace-cleanup-mode)
 
+(use-package super-save
+  :diminish
+  :commands super-save-mode
+  :config
+  (setq super-save-auto-save-when-idle t))
+
 ;; search
 
 (use-package ripgrep)
@@ -238,3 +244,8 @@
 (add-hook 'before-save-hook 'delete-trailing-whitespace)
 
 (provide 'editing)
+
+;; Emoji?
+
+(use-package emojify)
+(add-hook 'after-init-hook #'global-emojify-mode)

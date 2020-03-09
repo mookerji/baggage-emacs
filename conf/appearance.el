@@ -2,7 +2,9 @@
 
 ;; Packages!
 
-(use-package all-the-icons)
+(use-package all-the-icons
+  :custom (all-the-icons-scale-factor 0.5)
+  )
 (use-package diminish)
 (use-package fill-column-indicator)
 (use-package highlight-escape-sequences)
@@ -10,8 +12,6 @@
   :init (add-hook 'prog-mode-hook 'rainbow-delimiters-mode))
 (use-package solarized-theme)
 (use-package zoom)
-(use-package minions)
-(use-package spinner)
 
 ;; Buffers
 
