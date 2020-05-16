@@ -49,7 +49,8 @@
   :config
   (projectile-global-mode)
   (setq projectile-enable-caching t))
-; From: https://github.com/Alexander-Miller/treemacs
+
+;; From: https://github.com/Alexander-Miller/treemacs
 (use-package treemacs
   :defer t
   :init
@@ -248,4 +249,4 @@
 ;; Emoji?
 
 (use-package emojify)
-(add-hook 'after-init-hook #'global-emojify-mode)
+;; (add-hook 'after-init-hook #'global-emojify-mode)
