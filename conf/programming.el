@@ -44,7 +44,8 @@
 
 (use-package flycheck
   :defer 5
-  :config (global-flycheck-mode 1))
+  ;;:config (global-flycheck-mode 1)
+  )
 
 (use-package flycheck-pos-tip)
 
@@ -69,11 +70,13 @@
 (use-package lsp-ui
   :requires lsp-mode flycheck
   :config
-  (setq lsp-ui-doc-enable t
+  (setq lsp-ui-doc-enable nil
         lsp-ui-doc-use-childframe t
         lsp-ui-doc-position 'top
         lsp-ui-doc-include-signature t
-        lsp-ui-sideline-enable nil
+        lsp-ui-sideline-enable t
+        lsp-ui-sideline-show-hover t
+        lsp-ui-sideline-show-diagnostics t
         lsp-ui-flycheck-enable t
         lsp-ui-flycheck-list-position 'right
         lsp-ui-flycheck-live-reporting t
@@ -131,6 +134,7 @@
 (use-package cc-mode
   :mode (("\\.h\\(h?\\|xx\\|pp\\)\\'" . c++-mode))
   :config
+  (flycheck-mode 1)
   (setq tab-width 2)
   (setq-default c-basic-offset 2))
 
