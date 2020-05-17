@@ -81,6 +81,8 @@
         lsp-ui-peek-list-width 60
         lsp-ui-peek-peek-height 25)
   (add-hook 'lsp-mode-hook 'lsp-ui-mode)
+  ;; See:
+  ;; https://github.com/bbatsov/prelude/blob/master/modules/prelude-lsp.el#L42
   (define-key lsp-ui-mode-map [remap xref-find-definitions] #'lsp-ui-peek-find-definitions)
   (define-key lsp-ui-mode-map [remap xref-find-references] #'lsp-ui-peek-find-references)
   (define-key lsp-ui-mode-map (kbd "C-c C-l .") 'lsp-ui-peek-find-definitions)
@@ -169,28 +171,6 @@
   (whitespace-toggle-options '(tabs))
   (setq indent-tabs-mode t))
 
-;; (use-package rtags
-;;   :ensure t
-;;   :config
-;;   (setq rtags-completions-enabled t)
-;;   (eval-after-load 'company
-;;     '(add-to-list
-;;       'company-backends 'company-rtags))
-;;   (setq rtags-autostart-diagnostics t)
-;;   (rtags-enable-standard-keybindings))
-
-;; (use-package company-rtags
-;;   :after rtags company)
-
-;; (use-package cmake-ide
-;;   :after rtags
-;;   :config
-;;   (cmake-ide-setup)
-;;   (setq cmake-ide-header-search-other-file nil
-;;         cmake-ide-cmake-command "/usr/local/bin/cmake"
-;;         cmake-ide-header-search-first-including nil
-;;         cmake-ide-try-unique-compiler-flags-for-headers nil))
-
 ;; Protocol Buffers mode
 
 ;; FIX
@@ -264,13 +244,7 @@
   :disabled t
   :hook (stan-mode . stan-ac-mode-setup))
 
-;; languages: web and web markup
-
-; (use-package css-eldoc)
-; (use-package htmlize)
-; (use-package js2-mode)
-; (use-package js2-refactor)
-; (use-package less-css-mode)
+;; languages: web and web markup (TODO)
 
 ;; languages: misc programming languages
 

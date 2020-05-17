@@ -209,7 +209,6 @@
   :bind (:map isearch-mode-map
               ("C-o" . swiper-from-isearch)))
 
-
 (use-package counsel
   :after ivy
   :demand t
