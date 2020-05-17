@@ -3,8 +3,7 @@
 ;; Packages!
 
 (use-package all-the-icons
-  :custom (all-the-icons-scale-factor 0.5)
-  )
+  :custom (all-the-icons-scale-factor 0.5))
 (use-package diminish)
 (use-package fill-column-indicator)
 (use-package highlight-escape-sequences)
@@ -45,6 +44,8 @@
 (use-package saveplace)
 (setq save-place-file (concat user-emacs-directory "places"))
 
+(save-place-mode t)
+
 ;; Stuff to disable
 
 (unless (eq window-system 'ns)
@@ -72,5 +73,12 @@
 
 (setq mouse-wheel-follow-mouse 't)
 (setq mouse-wheel-scroll-amount '(1 ((shift) . 1)))
+
+;; Cleanup
+
+(use-package midnight
+  :config
+  (midnight-mode t)
+  (midnight-delay-set 'midnight-delay 18000))
 
 (provide 'appearance)

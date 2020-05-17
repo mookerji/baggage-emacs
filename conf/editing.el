@@ -19,9 +19,20 @@
 (global-set-key "\M-^" 'query-replace-regexp)
 (global-set-key [f5] 'call-last-kbd-macro)
 
-; Use ibuffer instead
+;; Use ibuffer instead
+
 (defalias 'list-buffers 'ibuffer)
+
 (iswitchb-mode 1)
+
+(use-package ibuffer-projectile
+  :ensure t
+  :init
+  (add-hook 'ibuffer-hook
+            (lambda ()
+              (ibuffer-projectile-set-filter-groups)
+              (unless (eq ibuffer-sorting-mode 'alphabetic)
+                (ibuffer-do-sort-by-alphabetic)))))
 
 ;; Defaults
 
@@ -34,8 +45,18 @@
 
 ;; Navigation
 
-(use-package which-key)
+;; (use-package which-key
+;;   :init
+;;   (which-key-mode)
+;;   :config
+;;   (which-key-setup-side-window-right-bottom)
+;;   (setq which-key-sort-order 'which-key-key-order-alpha
+;;         which-key-side-window-max-width 0.33
+;;         which-key-idle-delay 0.05)
+;;   :diminish which-key-mode)
+
 (use-package guide-key)
+
 (use-package hydra)
                                         ; TODO: remove?
 ;; (use-package ido
@@ -48,7 +69,10 @@
 (use-package projectile
   :config
   (projectile-global-mode)
-  (setq projectile-enable-caching t))
+  (setq projectile-enable-caching t)
+  (setq projectile-completion-system 'ivy)
+  (define-key projectile-mode-map (kbd "s-p") 'projectile-command-map)
+  (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map))
 
 ;; From: https://github.com/Alexander-Miller/treemacs
 (use-package treemacs
@@ -118,9 +142,11 @@
 
 (use-package treemacs-projectile
   :after treemacs projectile)
+
 (use-package treemacs-icons-dired
   :after treemacs dired
   :config (treemacs-icons-dired-mode))
+
 (use-package treemacs-magit
   :after treemacs magit)
 
@@ -145,7 +171,9 @@
 
   :custom
   (ivy-dynamic-exhibit-delay-ms 200)
-  (ivy-height 10)
+  (ivy-count-format "(%d/%d) ")
+  (ivy-display-style 'fancy)
+  (ivy-height 20)
   (ivy-initial-inputs-alist nil t)
   (ivy-magic-tilde nil)
   (ivy-re-builders-alist '((t . ivy--regex-ignore-order)))
@@ -155,6 +183,9 @@
   :config
   (ivy-mode 1)
   (ivy-set-occur 'ivy-switch-buffer 'ivy-switch-buffer-occur))
+
+(use-package ivy-hydra
+  :after ivy)
 
 (use-package ivy-rich
   :init
@@ -178,13 +209,24 @@
   :bind (:map isearch-mode-map
               ("C-o" . swiper-from-isearch)))
 
+
 (use-package counsel
   :after ivy
   :demand t
   :diminish
+  :bind (("C-*"     . counsel-org-agenda-headlines)
+         ("C-x C-f" . counsel-find-file)
+         ("C-c e l" . counsel-find-library))
   :config
   (setq counsel-git-grep-cmd-default
         "git --no-pager grep --full-name -n -C4 --no-color --threads 4 -i -e \"%s\""))
+
+(use-package counsel-osx-app
+  :commands counsel-osx-app
+  :config
+  (setq counsel-osx-app-location
+        (list "/Applications"
+              (expand-file-name "~/Applications"))))
 
 ;; Generic code editing
 
@@ -212,32 +254,55 @@
                      'paredit-close-round))
 
 (use-package smartparens)
+
 (use-package yasnippet
   :config (add-hook 'prog-mode-hook 'yas-minor-mode))
+
 (use-package yasnippet-snippets)
 
 ;; text editing
 
 (use-package auto-dictionary)
+
 (use-package flyspell)
+
 (use-package flyspell-correct)
+
 (use-package format-all)
+
 (use-package lorem-ipsum)
+
 (use-package move-text)
+
 (use-package shell-command)
+
 (use-package string-edit)
+
 (use-package undo-tree)
+
 (use-package whitespace-cleanup-mode)
 
 (use-package super-save
   :diminish
   :commands super-save-mode
   :config
+  (super-save-mode 1)
+  (setq auto-save-default nil)
   (setq super-save-auto-save-when-idle t))
+
+
+(use-package aggressive-fill-paragraph
+  :disabled t
+  :defer t
+  :commands aggressive-fill-paragraph-mode)
+
+(use-package csv-mode
+  :mode "\\.csv\\'")
 
 ;; search
 
 (use-package ripgrep)
+
 (use-package wgrep)
 
 ;; Hooks

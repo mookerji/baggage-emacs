@@ -51,10 +51,20 @@
 ;; Setup via: https://www.mortens.dev/blog/emacs-and-the-language-server-protocol/
 (use-package lsp-mode
   :config
+  (add-hook 'rust-mode-hook #'lsp)
+  (add-hook 'c++-mode-hook #'lsp)
+  (add-hook 'c-mode-hook #'lsp)
   (setq lsp-prefer-flymake nil)
   (require 'lsp-clients)
-  (add-hook 'rust-mode-hook #'lsp)
-  :commands lsp)
+  (setq lsp-clients-clangd-args '("-j=4" "-background-index" "-log=error"))
+  :commands (lsp-mode lsp-mode-deferred))
+
+(use-package lsp-ivy
+  :commands lsp-ivy-workspace-symbol)
+
+(use-package lsp-treemacs
+  :commands lsp-treemacs-errors-list
+  :config (lsp-treemacs-sync-mode 1))
 
 (use-package lsp-ui
   :requires lsp-mode flycheck
@@ -70,7 +80,24 @@
         lsp-ui-peek-enable t
         lsp-ui-peek-list-width 60
         lsp-ui-peek-peek-height 25)
-  (add-hook 'lsp-mode-hook 'lsp-ui-mode))
+  (add-hook 'lsp-mode-hook 'lsp-ui-mode)
+  (define-key lsp-ui-mode-map [remap xref-find-definitions] #'lsp-ui-peek-find-definitions)
+  (define-key lsp-ui-mode-map [remap xref-find-references] #'lsp-ui-peek-find-references)
+  (define-key lsp-ui-mode-map (kbd "C-c C-l .") 'lsp-ui-peek-find-definitions)
+  (define-key lsp-ui-mode-map (kbd "C-c C-l ?") 'lsp-ui-peek-find-references)
+  (define-key lsp-ui-mode-map (kbd "C-c C-l r") 'lsp-rename)
+  (define-key lsp-ui-mode-map (kbd "C-c C-l x") 'lsp-restart-workspace)
+  (define-key lsp-ui-mode-map (kbd "C-c C-l w") 'lsp-ui-peek-find-workspace-symbol)
+  (define-key lsp-ui-mode-map (kbd "C-c C-l i") 'lsp-ui-peek-find-implementation)
+  (define-key lsp-ui-mode-map (kbd "C-c C-l d") 'lsp-describe-thing-at-point)
+  (define-key lsp-ui-mode-map (kbd "C-c C-l e") 'lsp-execute-code-action))
+
+(use-package lsp-ui-imenu
+  :requires lsp-ui)
+
+(use-package dap-mode)
+
+(use-package dap-lldb)
 
 (use-package company
   :hook (prog-mode . company-mode)
@@ -78,8 +105,8 @@
   :config
   (global-company-mode 1)
   (global-set-key (kbd "C-<tab>") 'company-complete)
-  (setq company-idle-delay 0.05
-        company-minimum-prefix-length 2
+  (setq company-idle-delay 0.0
+        company-minimum-prefix-length 1
         company-show-numbers t
         company-tooltip-align-annotations t
         company-tooltip-flip-when-above t
@@ -99,27 +126,48 @@
 ;; C / C++
 
 ;; FIX
-
-(setq-default c-basic-offset 2)
-
-(setq tab-width 2)
+(use-package cc-mode
+  :mode (("\\.h\\(h?\\|xx\\|pp\\)\\'" . c++-mode))
+  :config
+  (setq tab-width 2)
+  (setq-default c-basic-offset 2))
 
 (add-hook 'c-mode-hook
           (lambda ()
             (setq comment-start "//" comment-end   "")))
 
+(use-package modern-cpp-font-lock
+  :straight t
+  :ensure t
+  :hook (c++-mode . modern-c++-font-lock-mode))
+
+;; Lifted from: https://eklitzke.org/smarter-emacs-clang-format
+(defun clang-format-buffer-smart ()
+  "Reformat buffer if .clang-format exists in the projectile root."
+  (when (and (f-exists? (expand-file-name ".clang-format" (projectile-project-root))) (or (eq major-mode 'c-mode) (eq major-mode 'c++-mode)))
+    (clang-format-buffer)))
+
+(use-package clang-format
+  :defer t
+  :commands (clang-format-buffer clang-format-region)
+  :hook (before-save . clang-format-buffer-smart))
+
 (use-package cmake-font-lock
   :hook (cmake-mode . cmake-font-lock-activate))
 
 (use-package cmake-mode
-  :mode ("CMakeLists.txt" "\\.cmake\\'"))
+  :mode ("CMakeLists.txt" "\\.cmake\\'")
+  :hook (cmake-mode .
+                    (lambda()
+                      (progn
+                        (setq-local company-idle-delay nil)
+                        (setq-local company-dabbrev-code-everywhere t)
+                        (setq-local company-backends '(company-cmake company-files))))))
 
 (use-package make-mode
   :config
   (whitespace-toggle-options '(tabs))
-  (setq indent-tabs-mode t)
-  )
-
+  (setq indent-tabs-mode t))
 
 ;; (use-package rtags
 ;;   :ensure t
@@ -145,7 +193,7 @@
 
 ;; Protocol Buffers mode
 
-                                        ; FIX
+;; FIX
 (defconst my-protobuf-style
   '((c-basic-offset . 2)
     (indent-tabs-mode . nil)))
@@ -231,8 +279,8 @@
   :mode ("\\.go$" . go-mode))
 
 (use-package haskell-mode
-  :deter t
-  :mode ("\\.stan\\'" . stan-mode))
+  :defer t
+  :mode ("\\.hs\\'" . hs-mode))
 
 (use-package lua-mode
   :mode "\\.lua\\'"
@@ -245,6 +293,21 @@
          ("\\BUILD\\'"     . bazel-mode)
          ("\\.bazel\\'"    . bazel-mode)
          ("\\.bzl\\'"      . bazel-mode)))
+
+
+;; (use-package docker
+;;   :bind ("C-c d" . docker)
+;;   :diminish
+;;   :init
+;;   (use-package docker-image     :commands docker-images)
+;;   (use-package docker-container :commands docker-containers)
+;;   (use-package docker-volume    :commands docker-volumes)
+;;   (use-package docker-network   :commands docker-containers)
+;;   (use-package docker-machine   :commands docker-machines)
+;;   (use-package docker-compose   :commands docker-compose))
+
+(use-package docker-compose-mode
+  :mode "docker-compose.*\.yml\\'")
 
 (use-package dockerfile-mode
   :mode "Dockerfile[a-zA-Z.-]*\\'")
@@ -264,8 +327,7 @@
   :mode (("\\`README\\.md\\'" . gfm-mode)
          ("\\.md\\'"          . markdown-mode)
          ("\\.markdown\\'"    . markdown-mode))
-  :init (setq markdown-command "multimarkdown")
-  )
+  :init (setq markdown-command "multimarkdown"))
 
 (use-package textile-mode)
 
@@ -273,6 +335,5 @@
 
 (use-package yaml-mode
   :mode ("\\.ya?ml\\'" . yaml-mode))
-
 
 (provide 'programming)
