@@ -68,9 +68,14 @@
 ;;(use-package ido-vertical-mode)
 (use-package projectile
   :config
+  (add-to-list 'projectile-globally-ignored-directories ".clangd")
+  (add-to-list 'projectile-globally-ignored-directories "build")
   (projectile-global-mode)
-  (setq projectile-enable-caching t)
-  (setq projectile-completion-system 'ivy)
+  (setq projectile-completion-system 'ivy
+        projectile-indexing-method 'alien
+        projectile-sort-order 'recently-active
+        projectile-use-git-grep t
+        projectile-enable-caching nil)
   (define-key projectile-mode-map (kbd "s-p") 'projectile-command-map)
   (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map))
 

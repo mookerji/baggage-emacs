@@ -36,7 +36,7 @@
 
 (use-package aggressive-indent
   :diminish
-  :hook (emacs-lisp-mode . aggressive-indent-mode))
+  :hook ((cpp-mode emacs-lisp-mode) . aggressive-indent-mode))
 
 (use-package eldoc
   :config
