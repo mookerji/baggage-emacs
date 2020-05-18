@@ -108,6 +108,7 @@
 (defvar company-mode/enable-yas t
   "Enable yasnippet for all backends.")
 
+;; TODO: can this be done with pushd to company-backends
 (defun company-mode/backend-with-yas (backend)
   "Add :with company-yasnippet to BACKEND if it is possible."
   (if (or (not company-mode/enable-yas) (and (listp backend) (member 'company-yasnippet backend)))
@@ -151,6 +152,9 @@
   (setq-default c-basic-offset 2))
 
 (add-hook 'c-mode-hook
+
+
+
           (lambda ()
             (setq comment-start "//" comment-end   "")))
 
@@ -174,18 +178,27 @@
   :hook (cmake-mode . cmake-font-lock-activate))
 
 (use-package cmake-mode
-  :mode ("CMakeLists.txt" "\\.cmake\\'")
-  :hook (cmake-mode .
-                    (lambda()
-                      (progn
-                        (setq-local company-idle-delay nil)
-                        (setq-local company-dabbrev-code-everywhere t)
-                        (setq-local company-backends '(company-cmake company-files))))))
+  :mode ("CMakeLists.txt" "\\.cmake\\'"))
 
 (use-package make-mode
   :config
   (whitespace-toggle-options '(tabs))
   (setq indent-tabs-mode t))
+
+(use-package company-clang
+  :after company
+  :config
+  (add-to-list 'company-backends 'company-clang))
+
+(use-package company-c-headers
+  :after company
+  :config
+  (add-to-list 'company-backends 'company-c-headers)
+  (add-to-list 'company-c-headers-path-system "/usr/local/opt/llvm/include"))
+
+(use-package disaster
+  :defer t
+  :commands disaster)
 
 ;; Protocol Buffers mode
 
