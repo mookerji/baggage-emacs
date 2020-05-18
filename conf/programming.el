@@ -74,6 +74,7 @@
         lsp-ui-doc-use-childframe t
         lsp-ui-doc-position 'top
         lsp-ui-doc-include-signature t
+        lsp-ui-sideline-delay 0.4
         lsp-ui-sideline-enable t
         lsp-ui-sideline-show-hover t
         lsp-ui-sideline-show-diagnostics t
@@ -104,12 +105,23 @@
 
 (use-package dap-lldb)
 
+(defvar company-mode/enable-yas t
+  "Enable yasnippet for all backends.")
+
+(defun company-mode/backend-with-yas (backend)
+  "Add :with company-yasnippet to BACKEND if it is possible."
+  (if (or (not company-mode/enable-yas) (and (listp backend) (member 'company-yasnippet backend)))
+	    backend
+	  (append (if (consp backend) backend (list backend))
+			      '(:with company-yasnippet))))
+
 (use-package company
   :hook (prog-mode . company-mode)
   :diminish
   :config
   (global-company-mode 1)
   (global-set-key (kbd "C-<tab>") 'company-complete)
+  (add-hook 'after-init-hook '(lambda() (setq company-backends (mapcar #'company-mode/backend-with-yas company-backends))) )
   (setq company-idle-delay 0.0
         company-minimum-prefix-length 1
         company-show-numbers t
