@@ -57,7 +57,7 @@
   (add-hook 'c-mode-hook #'lsp)
   (setq lsp-prefer-flymake nil)
   (require 'lsp-clients)
-  (setq lsp-clients-clangd-args '("-j=4" "-background-index" "-log=error"))
+  (setq lsp-clients-clangd-args '("-j=4" "-background-index" "-log=error" "--suggest-missing-includes" "--header-insertion=iwyu" "--clang-tidy" "--resource-dir=/usr/local/opt/llvm/include/c++/v1/"))
   :commands (lsp-mode lsp-mode-deferred))
 
 (use-package lsp-ivy
@@ -152,9 +152,6 @@
   (setq-default c-basic-offset 2))
 
 (add-hook 'c-mode-hook
-
-
-
           (lambda ()
             (setq comment-start "//" comment-end   "")))
 
@@ -185,16 +182,19 @@
   (whitespace-toggle-options '(tabs))
   (setq indent-tabs-mode t))
 
-(use-package company-clang
-  :after company
-  :config
-  (add-to-list 'company-backends 'company-clang))
-
 (use-package company-c-headers
   :after company
+	:commands (company-c-headers
+             company-c-headers-setup)
+	:hook ((c++-mode . company-c-headers-setup)
+         (c-mode . company-c-headers-setup))
   :config
-  (add-to-list 'company-backends 'company-c-headers)
-  (add-to-list 'company-c-headers-path-system "/usr/local/opt/llvm/include"))
+	(defun company-c-headers-setup ()
+		(add-to-list 'company-c-headers-path-system "/usr/local/opt/llvm/include/c++/v1/")
+		;; (require 'company-clang)
+		;; (setq company-clang-arguments '("-std=c++17"))
+		;; (add-to-list 'company-backends 'company-clang)
+		(add-to-list 'company-backends 'company-c-headers)))
 
 (use-package disaster
   :defer t
