@@ -21,3 +21,7 @@ recentf
 emojis
 eshell
 projectile.cache
+
+# So many snippets!
+elpa/yasnippet-snippets-*
+elpa/stan-snippets-*

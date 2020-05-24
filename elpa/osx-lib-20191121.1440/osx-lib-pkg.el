@@ -1,0 +1,2 @@
+;;; -*- no-byte-compile: t -*-
+(define-package "osx-lib" "20191121.1440" "Basic function for Apple/OSX." '((emacs "24.4")) :commit "01cba80ccc20412759f87b8f7531580bb04ec9c1" :keywords '("apple" "applescript" "osx" "finder" "emacs" "elisp" "vpn" "speech") :authors '(("Raghav Kumar Gautam" . "raghav@apache.org")) :maintainer '("Raghav Kumar Gautam" . "raghav@apache.org") :url "https://github.com/raghavgautam/osx-lib")
