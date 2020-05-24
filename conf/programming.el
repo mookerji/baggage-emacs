@@ -75,12 +75,12 @@
         lsp-ui-doc-position 'top
         lsp-ui-doc-include-signature t
         lsp-ui-sideline-delay 0.4
-        lsp-ui-sideline-enable t
+        lsp-ui-sideline-enable nil
         lsp-ui-sideline-show-hover t
         lsp-ui-sideline-show-diagnostics t
-        lsp-ui-flycheck-enable t
+        lsp-ui-flycheck-enable nil
         lsp-ui-flycheck-list-position 'right
-        lsp-ui-flycheck-live-reporting t
+        lsp-ui-flycheck-live-reporting nil
         lsp-ui-peek-enable t
         lsp-ui-peek-list-width 60
         lsp-ui-peek-peek-height 25)

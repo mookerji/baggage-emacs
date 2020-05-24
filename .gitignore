@@ -6,7 +6,6 @@
 .svn/
 tmp_stored_prelude
 .emacs.desktop
-elpa
 *.sqlite
 .emacs.desktop*
 
