@@ -98,12 +98,7 @@
   (define-key lsp-ui-mode-map (kbd "C-c C-l d") 'lsp-describe-thing-at-point)
   (define-key lsp-ui-mode-map (kbd "C-c C-l e") 'lsp-execute-code-action))
 
-(use-package lsp-ui-imenu
-  :requires lsp-ui)
-
 (use-package dap-mode)
-
-(use-package dap-lldb)
 
 (defvar company-mode/enable-yas t
   "Enable yasnippet for all backends.")
@@ -156,7 +151,6 @@
             (setq comment-start "//" comment-end   "")))
 
 (use-package modern-cpp-font-lock
-  :straight t
   :ensure t
   :hook (c++-mode . modern-c++-font-lock-mode))
 
