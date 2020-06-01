@@ -25,8 +25,7 @@
 (require 'settings)
 (require 'packages)
 (require 'fonts)
-(require 'appearance)
+(when (window-system)
+  (require 'appearance))
 (require 'editing)
 (require 'programming)
-
-(server-start)
