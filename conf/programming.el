@@ -26,7 +26,8 @@
 
 (use-package gitignore-mode)
 
-(use-package gist)
+;; Excluded for recursive load?
+;; (use-package gist)
 
 (use-package magit
   :defer 2
