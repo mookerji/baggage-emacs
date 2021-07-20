@@ -16,5 +16,9 @@ In `~/.emacs`:
 (load "~/.emacs.d/init.el")
 ```
 
+Prerequisites:
+
+- [Inconsolata](https://fonts.google.com/specimen/Inconsolata)
+
 NOTES:
 - Tested with [Emacs for OSX](https://emacsformacosx.com/).
