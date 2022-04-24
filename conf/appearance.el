@@ -9,8 +9,14 @@
 (use-package highlight-escape-sequences)
 (use-package rainbow-delimiters
   :init (add-hook 'prog-mode-hook 'rainbow-delimiters-mode))
-(use-package solarized-theme)
+;; (use-package solarized-theme)
 (use-package zoom)
+
+;; Manually loaded since solarized-emacs somehow is unavailable (?) in Melpa
+(add-to-list 'load-path (expand-file-name "local/solarized-emacs" user-emacs-directory))
+(require 'solarized)
+(load-theme 'solarized-dark t)
+
 
 ;; Buffers
 
@@ -20,7 +26,7 @@
 ;; UI
 
 (setq-default fill-column 80)
-(load-theme 'solarized-dark t)
+;; (load-theme 'solarized-dark t)
 
 ; (global-linum-mode 1)
 (column-number-mode 1)

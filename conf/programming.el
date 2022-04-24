@@ -51,15 +51,15 @@
 (use-package flycheck-pos-tip)
 
 ;; Setup via: https://www.mortens.dev/blog/emacs-and-the-language-server-protocol/
-(use-package lsp-mode
-  :config
-  (add-hook 'rust-mode-hook #'lsp)
-  (add-hook 'c++-mode-hook #'lsp)
-  (add-hook 'c-mode-hook #'lsp)
-  (setq lsp-prefer-flymake nil)
-  (require 'lsp-clients)
-  (setq lsp-clients-clangd-args '("-j=4" "-background-index" "-log=error" "--suggest-missing-includes" "--header-insertion=iwyu" "--clang-tidy" "--resource-dir=/usr/local/opt/llvm/include/c++/v1/"))
-  :commands (lsp-mode lsp-mode-deferred))
+;; (use-package lsp-mode
+;;   :config
+;;   (add-hook 'rust-mode-hook #'lsp)
+;;   (add-hook 'c++-mode-hook #'lsp)
+;;   (add-hook 'c-mode-hook #'lsp)
+;;   (setq lsp-prefer-flymake nil)
+;;   (require 'lsp-clients)
+;;   (setq lsp-clients-clangd-args '("-j=4" "-background-index" "-log=error" "--suggest-missing-includes" "--header-insertion=iwyu" "--clang-tidy" "--resource-dir=/usr/local/opt/llvm/include/c++/v1/"))
+;;   :commands (lsp-mode lsp-mode-deferred))
 
 (use-package lsp-ivy
   :commands lsp-ivy-workspace-symbol)

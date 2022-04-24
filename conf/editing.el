@@ -25,14 +25,14 @@
 
 (iswitchb-mode 1)
 
-(use-package ibuffer-projectile
-  :ensure t
-  :init
-  (add-hook 'ibuffer-hook
-            (lambda ()
-              (ibuffer-projectile-set-filter-groups)
-              (unless (eq ibuffer-sorting-mode 'alphabetic)
-                (ibuffer-do-sort-by-alphabetic)))))
+;; (use-package ibuffer-projectile
+;;   :ensure t
+;;   :init
+;;   (add-hook 'ibuffer-hook
+;;             (lambda ()
+;;               (ibuffer-projectile-set-filter-groups)
+;;               (unless (eq ibuffer-sorting-mode 'alphabetic)
+;;                 (ibuffer-do-sort-by-alphabetic)))))
 
 ;; Defaults
 
@@ -66,18 +66,18 @@
 ;;(use-package ido-at-point)
 ;;(use-package ido-completing-read+)
 ;;(use-package ido-vertical-mode)
-(use-package projectile
-  :config
-  (add-to-list 'projectile-globally-ignored-directories ".clangd")
-  (add-to-list 'projectile-globally-ignored-directories "build")
-  (projectile-global-mode)
-  (setq projectile-completion-system 'ivy
-        projectile-indexing-method 'alien
-        projectile-sort-order 'recently-active
-        projectile-use-git-grep t
-        projectile-enable-caching nil)
-  (define-key projectile-mode-map (kbd "s-p") 'projectile-command-map)
-  (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map))
+;; (use-package projectile
+;;   :config
+;;   (add-to-list 'projectile-globally-ignored-directories ".clangd")
+;;   (add-to-list 'projectile-globally-ignored-directories "build")
+;;   (projectile-global-mode)
+;;   (setq projectile-completion-system 'ivy
+;;         projectile-indexing-method 'alien
+;;         projectile-sort-order 'recently-active
+;;         projectile-use-git-grep t
+;;         projectile-enable-caching nil)
+;;   (define-key projectile-mode-map (kbd "s-p") 'projectile-command-map)
+;;   (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map))
 
 ;; From: https://github.com/Alexander-Miller/treemacs
 (use-package treemacs

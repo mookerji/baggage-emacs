@@ -1,0 +1,3 @@
+[submodule "local/solarized-emacs"]
+	path = local/solarized-emacs
+	url = git@github.com:bbatsov/solarized-emacs.git
