@@ -105,37 +105,17 @@
   "Enable yasnippet for all backends.")
 
 ;; TODO: can this be done with pushd to company-backends
-(defun company-mode/backend-with-yas (backend)
-  "Add :with company-yasnippet to BACKEND if it is possible."
-  (if (or (not company-mode/enable-yas) (and (listp backend) (member 'company-yasnippet backend)))
-	    backend
-	  (append (if (consp backend) backend (list backend))
-			      '(:with company-yasnippet))))
 
-(use-package company
-  :hook (prog-mode . company-mode)
-  :diminish
-  :config
-  (global-company-mode 1)
-  (global-set-key (kbd "C-<tab>") 'company-complete)
-  (add-hook 'after-init-hook '(lambda() (setq company-backends (mapcar #'company-mode/backend-with-yas company-backends))) )
-  (setq company-idle-delay 0.0
-        company-minimum-prefix-length 1
-        company-show-numbers t
-        company-tooltip-align-annotations t
-        company-tooltip-flip-when-above t
-        company-tooltip-limit 10))
-
-(use-package company-lsp
-  :requires company
-  :after lsp-mode
-  :config
-  (require 'lsp-clients)
-  (push 'company-lsp company-backends)
-  (yas-minor-mode-on)
-  (setq company-transformers nil
-        company-lsp-async t
-        company-lsp-cache-candidates nil))
+;; (use-package company-lsp
+;;   :requires company
+;;   :after lsp-mode
+;;   :config
+;;   (require 'lsp-clients)
+;;   (push 'company-lsp company-backends)
+;;   (yas-minor-mode-on)
+;;   (setq company-transformers nil
+;;         company-lsp-async t
+;;         company-lsp-cache-candidates nil))
 
 ;; C / C++
 
@@ -219,7 +199,9 @@
   :config
   (setq indent-tabs-mode nil)
   (subword-mode 1)
+  (company-mode -1)
   (eldoc-mode 1))
+
 
 ;; languages: rust (Requires: rustc, cargo, rustfmt, rls)
 
@@ -235,7 +217,7 @@
   (flycheck-mode 1)
   (yas-minor-mode-on)
   (eldoc-mode 1)
-  (setq rust-format-on-save t))
+  (setq rust-format-on-save nil))
 
 (use-package flycheck-rust
   :config

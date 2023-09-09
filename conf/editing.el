@@ -58,26 +58,6 @@
 (use-package guide-key)
 
 (use-package hydra)
-                                        ; TODO: remove?
-;; (use-package ido
-;;   :config
-;;   (setq ido-enable-flex-matching t)
-;;   (ido-mode 1))
-;;(use-package ido-at-point)
-;;(use-package ido-completing-read+)
-;;(use-package ido-vertical-mode)
-;; (use-package projectile
-;;   :config
-;;   (add-to-list 'projectile-globally-ignored-directories ".clangd")
-;;   (add-to-list 'projectile-globally-ignored-directories "build")
-;;   (projectile-global-mode)
-;;   (setq projectile-completion-system 'ivy
-;;         projectile-indexing-method 'alien
-;;         projectile-sort-order 'recently-active
-;;         projectile-use-git-grep t
-;;         projectile-enable-caching nil)
-;;   (define-key projectile-mode-map (kbd "s-p") 'projectile-command-map)
-;;   (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map))
 
 ;; From: https://github.com/Alexander-Miller/treemacs
 (use-package treemacs
@@ -99,7 +79,7 @@
           treemacs-follow-after-init             t
           treemacs-git-command-pipe              ""
           treemacs-goto-tag-strategy             'refetch-index
-          treemacs-indentation                   2
+          treemacs-indentation                   1
           treemacs-indentation-string            " "
           treemacs-is-never-other-window         nil
           treemacs-max-git-entries               5000
@@ -122,7 +102,7 @@
           treemacs-space-between-root-nodes      t
           treemacs-tag-follow-cleanup            t
           treemacs-tag-follow-delay              1.5
-          treemacs-width                         35)
+          treemacs-width                         30)
 
     ;; The default width and height of the icons is 22 pixels. If you are
     ;; using a Hi-DPI display, uncomment this to double the icon size.
@@ -155,59 +135,66 @@
 (use-package treemacs-magit
   :after treemacs magit)
 
-(use-package ivy
-  :diminish
-  :demand t
 
-  :bind (("C-x b" . ivy-switch-buffer)
-         ("C-x B" . ivy-switch-buffer-other-window)
-         ("M-H"   . ivy-resume))
-
-  :bind (:map ivy-minibuffer-map
-              ("<tab>" . ivy-alt-done)
-              ("SPC"   . ivy-alt-done-or-space)
-              ("C-d"   . ivy-done-or-delete-char)
-              ("C-i"   . ivy-partial-or-done)
-              ("C-r"   . ivy-previous-line-or-history)
-              ("M-r"   . ivy-reverse-i-search))
-
-  :bind (:map ivy-switch-buffer-map
-              ("C-k" . ivy-switch-buffer-kill))
-
-  :custom
-  (ivy-dynamic-exhibit-delay-ms 200)
-  (ivy-count-format "(%d/%d) ")
-  (ivy-display-style 'fancy)
-  (ivy-height 20)
-  (ivy-initial-inputs-alist nil t)
-  (ivy-magic-tilde nil)
-  (ivy-re-builders-alist '((t . ivy--regex-ignore-order)))
-  (ivy-use-virtual-buffers t)
-  (ivy-wrap t)
-
-  :config
-  (ivy-mode 1)
-  (ivy-set-occur 'ivy-switch-buffer 'ivy-switch-buffer-occur))
-
-(use-package ivy-hydra
-  :after ivy)
-
-(use-package ivy-rich
+(use-package vertico
   :init
-  (setq ivy-rich-display-transformers-list
-        '(counsel-M-x
-          (:columns
-           ((counsel-M-x-transformer (:width 35))
-            (ivy-rich-counsel-function-docstring (:width 80 :face font-lock-doc-face))))
-          package-install
-          (:columns
-           ((ivy-rich-candidate (:width 25))
-            (ivy-rich-package-version (:width 12 :face font-lock-comment-face))
-            (ivy-rich-package-archive-summary (:width 7 :face font-lock-builtin-face))
-            (ivy-rich-package-install-summary (:width 80 :face font-lock-doc-face))))))
-  :config
-  (ivy-rich-mode +1)
-  (setcdr (assq t ivy-format-functions-alist) #'ivy-format-function-line))
+  (vertico-mode)
+  ;; Different scroll margin
+  ;; (setq vertico-scroll-margin 0)
+
+  ;; Show more candidates
+  (setq vertico-count 20)
+
+  ;; Grow and shrink the Vertico minibuffer
+  (setq vertico-resize t)
+
+  ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
+  ;; (setq vertico-cycle t)
+  )
+
+;; A few more useful configurations...
+(use-package emacs
+  :init
+  ;; Add prompt indicator to `completing-read-multiple'.
+  ;; We display [CRM<separator>], e.g., [CRM,] if the separator is a comma.
+  (defun crm-indicator (args)
+    (cons (format "[CRM%s] %s"
+                  (replace-regexp-in-string
+                   "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
+                   crm-separator)
+                  (car args))
+          (cdr args)))
+  (advice-add #'completing-read-multiple :filter-args #'crm-indicator)
+
+  ;; Do not allow the cursor in the minibuffer prompt
+  (setq minibuffer-prompt-properties
+        '(read-only t cursor-intangible t face minibuffer-prompt))
+  (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
+
+  ;; Emacs 28: Hide commands in M-x which do not work in the current mode.
+  ;; Vertico commands are hidden in normal buffers.
+  ;; (setq read-extended-command-predicate
+  ;;       #'command-completion-default-include-p)
+
+  ;; Enable recursive minibuffers
+  (setq enable-recursive-minibuffers t))
+
+;; Optionally use the `orderless' completion style.
+(use-package orderless
+  :init
+  ;; Configure a custom style dispatcher (see the Consult wiki)
+  ;; (setq orderless-style-dispatchers '(+orderless-consult-dispatch orderless-affix-dispatch)
+  ;;       orderless-component-separator #'orderless-escapable-split-on-space)
+  (setq completion-styles '(orderless basic)
+        completion-category-defaults nil
+        completion-category-overrides '((file (styles partial-completion)))))
+
+;; Persist history over Emacs restarts. Vertico sorts by history position.
+(use-package savehist
+  :init
+  (savehist-mode))
+
+;; A few more useful configurations...
 
 (use-package swiper
   :after ivy
