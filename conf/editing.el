@@ -297,6 +297,11 @@
 
 (use-package wgrep)
 
+(use-package dumb-jump
+  :init
+  (add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
+  (setq xref-show-definitions-function #'xref-show-definitions-completing-read))
+
 ;; Hooks
 
 (add-hook 'before-save-hook 'delete-trailing-whitespace)

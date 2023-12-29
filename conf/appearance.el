@@ -28,18 +28,13 @@
 (setq-default fill-column 80)
 ;; (load-theme 'solarized-dark t)
 
-; (global-linum-mode 1)
+
+(global-display-line-numbers-mode 1)
 (column-number-mode 1)
 (size-indication-mode 1)
 (global-auto-revert-mode 1)
 (global-hl-line-mode 1)
 (show-paren-mode 1)
-
-; Faster replacement for linum
-(use-package nlinum
-  :init
-  (global-nlinum-mode 1)
-  (setq nlinum-format "%4d"))
 
 ;; Workspace saving
 

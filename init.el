@@ -28,4 +28,5 @@
 (when (window-system)
   (require 'appearance))
 (require 'editing)
+(require 'misc)
 (require 'programming)

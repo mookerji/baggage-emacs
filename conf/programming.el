@@ -214,7 +214,7 @@
   (cargo-minor-mode 1)
   (subword-mode 1)
   (electric-pair-mode 1)
-  (flycheck-mode 1)
+  ;; (flycheck-mode 1)
   (yas-minor-mode-on)
   (eldoc-mode 1)
   (setq rust-format-on-save nil))
@@ -223,6 +223,13 @@
   :config
   (with-eval-after-load 'rust-mode
     (add-hook 'flycheck-mode-hook #'flycheck-rust-setup)))
+
+(use-package rustic
+  :init
+  (add-hook 'eglot--managed-mode-hook (lambda () (flymake-mode -1)))
+  (add-hook 'rust-mode-hook 'eglot-ensure)
+  :custom
+  (rustic-analyzer-command '("rustup" "run" "stable" "rust-analyzer")))
 
 ;; Stan
 ;;
