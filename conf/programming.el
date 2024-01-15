@@ -217,14 +217,19 @@
   (subword-mode 1)
   (electric-pair-mode 1)
   ;; (flycheck-mode 1)
-  (yas-minor-mode-on)
   (eldoc-mode -1)
+  (setq rustic-lsp-client 'eglot)
   (setq rust-format-on-save nil))
 
 (use-package flycheck-rust
   :config
   (with-eval-after-load 'rust-mode
     (add-hook 'flycheck-mode-hook #'flycheck-rust-setup)))
+
+;; Requires installation of rust-analyzer:
+;; $ git clone https://github.com/rust-lang/rust-analyzer.git && cd rust-analyzer
+;; $ cargo xtask install --server
+;; or $ rustup component add rust-analyzer?
 
 (use-package rustic
   :init
