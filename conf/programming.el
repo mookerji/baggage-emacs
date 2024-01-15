@@ -31,7 +31,11 @@
 
 (use-package magit
   :defer 2
-  :bind (("C-x g" . magit-status)))
+  :bind (("C-x g" . magit-status))
+  :config
+  (setq magit-view-git-manual-method 'man)
+  :custom
+  (magit-diff-refine-hunk t))
 
 ;; languages
 

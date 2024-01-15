@@ -36,12 +36,16 @@
 
 ;; Defaults
 
+;; TODO(mookerji): Move this to an use-package emacs config
+
 (setq-default indent-tabs-mode nil)
 
 (setq save-interprogram-paste-before-kill t
       apropos-do-all t
       mouse-yank-at-point t
-      require-final-newline t)
+      require-final-newline t
+      auto-save-interval 64
+      auto-save-timeout 2)
 
 ;; Navigation
 
