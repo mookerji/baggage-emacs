@@ -64,61 +64,12 @@
 ;;   (setq lsp-clients-clangd-args '("-j=4" "-background-index" "-log=error" "--suggest-missing-includes" "--header-insertion=iwyu" "--clang-tidy" "--resource-dir=/usr/local/opt/llvm/include/c++/v1/"))
 ;;   :commands (lsp-mode lsp-mode-deferred))
 
-(use-package lsp-ivy
-  :commands lsp-ivy-workspace-symbol)
-
-(use-package lsp-treemacs
-  :commands lsp-treemacs-errors-list
-  :config (lsp-treemacs-sync-mode 1))
-
-(use-package lsp-ui
-  :requires lsp-mode flycheck
-  :config
-  (setq lsp-ui-doc-enable nil
-        lsp-ui-doc-use-childframe t
-        lsp-ui-doc-position 'top
-        lsp-ui-doc-include-signature t
-        lsp-ui-sideline-delay 0.4
-        lsp-ui-sideline-enable nil
-        lsp-ui-sideline-show-hover t
-        lsp-ui-sideline-show-diagnostics t
-        lsp-ui-flycheck-enable nil
-        lsp-ui-flycheck-list-position 'right
-        lsp-ui-flycheck-live-reporting nil
-        lsp-ui-peek-enable t
-        lsp-ui-peek-list-width 60
-        lsp-ui-peek-peek-height 25)
-  (add-hook 'lsp-mode-hook 'lsp-ui-mode)
-  ;; See:
-  ;; https://github.com/bbatsov/prelude/blob/master/modules/prelude-lsp.el#L42
-  (define-key lsp-ui-mode-map [remap xref-find-definitions] #'lsp-ui-peek-find-definitions)
-  (define-key lsp-ui-mode-map [remap xref-find-references] #'lsp-ui-peek-find-references)
-  (define-key lsp-ui-mode-map (kbd "C-c C-l .") 'lsp-ui-peek-find-definitions)
-  (define-key lsp-ui-mode-map (kbd "C-c C-l ?") 'lsp-ui-peek-find-references)
-  (define-key lsp-ui-mode-map (kbd "C-c C-l r") 'lsp-rename)
-  (define-key lsp-ui-mode-map (kbd "C-c C-l x") 'lsp-restart-workspace)
-  (define-key lsp-ui-mode-map (kbd "C-c C-l w") 'lsp-ui-peek-find-workspace-symbol)
-  (define-key lsp-ui-mode-map (kbd "C-c C-l i") 'lsp-ui-peek-find-implementation)
-  (define-key lsp-ui-mode-map (kbd "C-c C-l d") 'lsp-describe-thing-at-point)
-  (define-key lsp-ui-mode-map (kbd "C-c C-l e") 'lsp-execute-code-action))
-
 (use-package dap-mode)
 
 (defvar company-mode/enable-yas t
   "Enable yasnippet for all backends.")
 
 ;; TODO: can this be done with pushd to company-backends
-
-;; (use-package company-lsp
-;;   :requires company
-;;   :after lsp-mode
-;;   :config
-;;   (require 'lsp-clients)
-;;   (push 'company-lsp company-backends)
-;;   (yas-minor-mode-on)
-;;   (setq company-transformers nil
-;;         company-lsp-async t
-;;         company-lsp-cache-candidates nil))
 
 ;; C / C++
 
@@ -203,13 +154,9 @@
   (define-key python-mode-map (kbd "C-c C-p") 'undefined)
   (setq indent-tabs-mode nil)
   (subword-mode 1)
-  (company-mode -1)
-  )
+  (company-mode -1))
 
 ;; languages: rust (Requires: rustc, cargo, rustfmt, rls)
-
-(use-package cargo
-  :hook (rust-mode . cargo-minor-mode))
 
 (use-package flycheck-rust
   :config
@@ -226,15 +173,13 @@
   :init
   (add-hook 'rust-mode-hook 'eglot-ensure)
   :config
-  ;; (add-hook 'eglot-managed-mode-hook #'eldoc-box-hover-mode t)
+  (add-hook 'rustic-mode-hook 'corfu-mode)
   (setq eldoc-echo-area-use-multiline-p t)
   (setq rustic-lsp-client 'eglot)
   (cargo-minor-mode 1)
   (subword-mode 1)
   (flycheck-mode 1)
-  (corfu-mode 1)
   (electric-pair-mode 1)
-  (eldoc-mode -1)
   :custom
   (rustic-analyzer-command '("rustup" "run" "stable" "rust-analyzer")))
 
