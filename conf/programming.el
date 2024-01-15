@@ -45,10 +45,11 @@
   :config
   (add-hook 'emacs-lisp-mode-hook 'eldoc-mode))
 
-(global-eldoc-mode -1) 
+(global-eldoc-mode -1)
 
 (use-package flycheck
-  :defer 5)
+  :defer 5
+  :ensure)
 
 (use-package flycheck-pos-tip)
 
@@ -203,23 +204,12 @@
   (setq indent-tabs-mode nil)
   (subword-mode 1)
   (company-mode -1)
-  (eldoc-mode -1))
+  )
 
 ;; languages: rust (Requires: rustc, cargo, rustfmt, rls)
 
 (use-package cargo
   :hook (rust-mode . cargo-minor-mode))
-
-(use-package rust-mode
-  :mode "\\.rs\\'"
-  :init
-  (cargo-minor-mode 1)
-  (subword-mode 1)
-  (electric-pair-mode 1)
-  ;; (flycheck-mode 1)
-  (eldoc-mode -1)
-  (setq rustic-lsp-client 'eglot)
-  (setq rust-format-on-save nil))
 
 (use-package flycheck-rust
   :config
@@ -232,9 +222,19 @@
 ;; or $ rustup component add rust-analyzer?
 
 (use-package rustic
+  :ensure
   :init
-  (add-hook 'eglot--managed-mode-hook (lambda () (flymake-mode -1)))
   (add-hook 'rust-mode-hook 'eglot-ensure)
+  :config
+  ;; (add-hook 'eglot-managed-mode-hook #'eldoc-box-hover-mode t)
+  (setq eldoc-echo-area-use-multiline-p t)
+  (setq rustic-lsp-client 'eglot)
+  (cargo-minor-mode 1)
+  (subword-mode 1)
+  (flycheck-mode 1)
+  (corfu-mode 1)
+  (electric-pair-mode 1)
+  (eldoc-mode -1)
   :custom
   (rustic-analyzer-command '("rustup" "run" "stable" "rust-analyzer")))
 
