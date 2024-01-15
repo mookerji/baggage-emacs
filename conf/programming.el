@@ -45,6 +45,8 @@
   :config
   (add-hook 'emacs-lisp-mode-hook 'eldoc-mode))
 
+(global-eldoc-mode -1) 
+
 (use-package flycheck
   :defer 5)
 
