@@ -18,8 +18,6 @@
 
 (use-package forge)
 
-(use-package git-timemachine)
-
 (use-package gitattributes-mode)
 
 (use-package gitconfig-mode)
@@ -48,9 +46,7 @@
   (add-hook 'emacs-lisp-mode-hook 'eldoc-mode))
 
 (use-package flycheck
-  :defer 5
-  ;;:config (global-flycheck-mode 1)
-  )
+  :defer 5)
 
 (use-package flycheck-pos-tip)
 
@@ -201,11 +197,11 @@
               ("C-c c")
               ("C-c C-z" . python-shell))
   :config
+  (define-key python-mode-map (kbd "C-c C-p") 'undefined)
   (setq indent-tabs-mode nil)
   (subword-mode 1)
   (company-mode -1)
-  (eldoc-mode 1))
-
+  (eldoc-mode -1))
 
 ;; languages: rust (Requires: rustc, cargo, rustfmt, rls)
 
@@ -220,7 +216,7 @@
   (electric-pair-mode 1)
   ;; (flycheck-mode 1)
   (yas-minor-mode-on)
-  (eldoc-mode 1)
+  (eldoc-mode -1)
   (setq rust-format-on-save nil))
 
 (use-package flycheck-rust
@@ -234,32 +230,6 @@
   (add-hook 'rust-mode-hook 'eglot-ensure)
   :custom
   (rustic-analyzer-command '("rustup" "run" "stable" "rust-analyzer")))
-
-;; Stan
-;;
-;; https://github.com/stan-dev/stan-mode
-
-(use-package stan-mode
-  :mode ("\\.stan\\'" . stan-mode)
-  :hook (stan-mode . stan-mode-setup)
-  :config (setq stan-indentation-offset 2))
-
-(use-package company-stan
-  :hook (stan-mode . company-stan-setup)
-  :config (setq company-stan-fuzzy nil))
-
-(use-package eldoc-stan
-  :hook (stan-mode . eldoc-stan-setup))
-
-(use-package flycheck-stan
-  :hook (stan-mode . flycheck-stan-setup))
-
-(use-package stan-snippets
-  :hook (stan-mode . stan-snippets-initialize))
-
-(use-package ac-stan
-  :disabled t
-  :hook (stan-mode . stan-ac-mode-setup))
 
 ;; languages: web and web markup (TODO)
 
