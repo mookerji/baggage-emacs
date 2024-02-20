@@ -53,17 +53,6 @@
 
 (use-package flycheck-pos-tip)
 
-;; Setup via: https://www.mortens.dev/blog/emacs-and-the-language-server-protocol/
-;; (use-package lsp-mode
-;;   :config
-;;   (add-hook 'rust-mode-hook #'lsp)
-;;   (add-hook 'c++-mode-hook #'lsp)
-;;   (add-hook 'c-mode-hook #'lsp)
-;;   (setq lsp-prefer-flymake nil)
-;;   (require 'lsp-clients)
-;;   (setq lsp-clients-clangd-args '("-j=4" "-background-index" "-log=error" "--suggest-missing-includes" "--header-insertion=iwyu" "--clang-tidy" "--resource-dir=/usr/local/opt/llvm/include/c++/v1/"))
-;;   :commands (lsp-mode lsp-mode-deferred))
-
 (use-package dap-mode)
 
 (defvar company-mode/enable-yas t
@@ -172,7 +161,11 @@
   :ensure
   :init
   (add-hook 'rust-mode-hook 'eglot-ensure)
+  :hook
+  (eglot-managed-mode . (lambda () (eglot-inlay-hints-mode -1)))  
   :config
+  (setq eldoc-idle-delay 0.75)
+  (setq eglot-events-buffer-size 0)
   (add-hook 'rustic-mode-hook 'corfu-mode)
   (setq eldoc-echo-area-use-multiline-p t)
   (setq rustic-lsp-client 'eglot)
