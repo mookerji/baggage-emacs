@@ -78,16 +78,9 @@
   :ensure t
   :hook (c++-mode . modern-c++-font-lock-mode))
 
-;; Lifted from: https://eklitzke.org/smarter-emacs-clang-format
-(defun clang-format-buffer-smart ()
-  "Reformat buffer if .clang-format exists in the projectile root."
-  (when (and (f-exists? (expand-file-name ".clang-format" (projectile-project-root))) (or (eq major-mode 'c-mode) (eq major-mode 'c++-mode)))
-    (clang-format-buffer)))
-
 (use-package clang-format
   :defer t
-  :commands (clang-format-buffer clang-format-region)
-  :hook (before-save . clang-format-buffer-smart))
+  :commands (clang-format-buffer clang-format-region))
 
 (use-package cmake-font-lock
   :hook (cmake-mode . cmake-font-lock-activate))

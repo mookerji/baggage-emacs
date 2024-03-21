@@ -34,3 +34,6 @@ places
 tramp
 url/
 notes
+
+eln-cache
+org-persist

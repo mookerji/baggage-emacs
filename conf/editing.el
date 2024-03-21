@@ -423,3 +423,31 @@
   ;; Other
   ;; Already use corfu-popupinfo
   (corfu-echo-documentation nil))
+
+;; setup emark about somepoint?
+
+;; org mode
+;;
+;; - https://orgmode.org/worg/org-tutorials/orgtutorial_dto.html
+;; - https://github.com/james-stoup/emacs-org-mode-tutorial
+;; - https://github.com/jwiegley/dot-emacs/blob/master/init.org#org-mode
+
+(use-package org-super-agenda)
+
+(defun fix-org-headers ()
+  (dolist (face '(org-level-1
+                  org-level-2
+                  org-level-3
+                  org-level-4
+                  org-level-5))
+    (set-face-attribute face nil :family "Inconsolata" :weight 'normal :height 1.0)))
+
+(use-package org
+  :init
+  (add-hook 'org-mode-hook #'fix-org-headers)
+  (add-hook 'org-mode-hook 'visual-line-mode)
+  (add-hook 'org-mode-hook 'org-indent-mode)
+  (add-to-list 'auto-mode-alist '("\\.org\\'" . org-mode))
+  (when (f-directory? "~/projects/span/notes")
+    (setq org-agenda-files '("~/projects/span/notes")))
+  (setq org-todo-keywords '((sequence "TODO" "IN-PROGRESS" "SKIP" "BLOCKED" "DONE"))))
