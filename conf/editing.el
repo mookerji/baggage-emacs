@@ -447,7 +447,26 @@
   (add-hook 'org-mode-hook #'fix-org-headers)
   (add-hook 'org-mode-hook 'visual-line-mode)
   (add-hook 'org-mode-hook 'org-indent-mode)
+  :config
   (add-to-list 'auto-mode-alist '("\\.org\\'" . org-mode))
-  (when (f-directory? "~/projects/span/notes")
+  (when (f-directory? "~/projects/span/notes/diary")
+    (setq org-agenda-files '("~/projects/span/notes/diary")))
+  (when (f-directory? "~/projects/personal/notes")
     (setq org-agenda-files '("~/projects/span/notes")))
   (setq org-todo-keywords '((sequence "TODO" "IN-PROGRESS" "SKIP" "BLOCKED" "DONE"))))
+
+(use-package org-roam
+  :after org)
+
+(use-package org-ai
+  :ensure t
+  :commands (org-ai-mode
+             org-ai-global-mode)
+  :init
+  (add-hook 'org-mode-hook #'org-ai-mode)
+  (org-ai-global-mode)
+  :config
+  (setq org-ai-openai-api-token
+        (or
+         (getenv "OPENAI_KEY") "OPENAI_KEY not set"))
+  (setq org-ai-default-chat-model "gpt-4"))
