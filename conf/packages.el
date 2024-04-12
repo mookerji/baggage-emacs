@@ -24,4 +24,20 @@
 (use-package osx-lib)
 (use-package restart-emacs)
 
+;; Use explicit warnings
+(setq byte-compile-warnings '(byte-compile-warnings
+                              callargs
+                              free-vars
+                              interactive-only
+                              lexical
+                              lexical-dynamic
+                              make-local
+                              mapcar
+                              noruntime
+                              not-unused
+                              obsolete
+                              redefine
+                              suspicious
+                              unresolved))
+
 (provide 'packages)

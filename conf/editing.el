@@ -12,7 +12,7 @@
 (global-set-key "\C-x\C-m" 'execute-extended-command)
 (global-set-key "\C-c\C-m" 'execute-extended-command)
 (global-set-key "\C-w" 'backward-kill-word)
-(global-set-key "\C-h" 'delete-backward-char)
+;; (global-set-key "\C-h" 'delete-backward-char)
 (global-set-key "\C-x\C-k" 'kill-region)
 (global-set-key "\C-c\C-k" 'kill-region)
 (global-set-key "\C-x:"      'goto-line)
@@ -449,9 +449,9 @@
   (add-hook 'org-mode-hook 'org-indent-mode)
   :config
   (add-to-list 'auto-mode-alist '("\\.org\\'" . org-mode))
-  (when (f-directory? "~/projects/span/notes/diary")
+  (when (file-directory-p "~/projects/span/notes/diary")
     (setq org-agenda-files '("~/projects/span/notes/diary")))
-  (when (f-directory? "~/projects/personal/notes")
+  (when (file-directory-p "~/projects/personal/notes")
     (setq org-agenda-files '("~/projects/span/notes")))
   (setq org-todo-keywords '((sequence "TODO" "IN-PROGRESS" "SKIP" "BLOCKED" "DONE"))))
 
@@ -469,4 +469,4 @@
   (setq org-ai-openai-api-token
         (or
          (getenv "OPENAI_KEY") "OPENAI_KEY not set"))
-  (setq org-ai-default-chat-model "gpt-4"))
+  (setq org-ai-default-chat-model "gpt-4-turbo-2024-04-09"))
