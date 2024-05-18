@@ -33,6 +33,8 @@ evaluate `(default-value \\='org-ai-global-mode)'.
 The mode's hook is called both when the mode is enabled and when
 it is disabled.
 
+\\{org-ai-global-mode-map}
+
 (fn &optional ARG)" t)
 (register-definition-prefixes "org-ai" '("org-ai-"))
 

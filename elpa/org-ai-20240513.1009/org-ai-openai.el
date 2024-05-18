@@ -32,6 +32,16 @@
 
 (require 'org-ai-block)
 
+(defcustom org-ai-jump-to-end-of-block t
+  "If non-nil, jump to the end of the block after inserting the completion."
+  :type 'boolean
+  :group 'org-ai)
+
+(defcustom org-ai-auto-fill nil
+  "If non-nil, will fill paragraphs when inserting completions."
+  :type 'boolean
+  :group 'org-ai)
+
 (defcustom org-ai-openai-api-token nil
   "This is your OpenAI API token.
 You need to specify if you do not store the token in
@@ -100,10 +110,16 @@ messages."
                         "With newer ChatGPT versions this is no longer necessary."
                         "2023-12-26")
 
+(defun org-ai--read-service-name (name)
+  "Map a service name such as 'openai' to a valid `org-ai-service' symbol."
+  (intern-soft name))
+
 (defcustom org-ai-service 'openai
   "Service to use. Either openai or azure-openai."
   :type '(choice (const :tag "OpenAI" openai)
-                 (const :tag "Azure-OpenAI" azure-openai))
+                 (const :tag "Azure-OpenAI" azure-openai)
+                 (const :tag "perplexity.ai" perplexity.ai)
+                 (const :tag "anthropic" anthropic))
   :group 'org-ai)
 
 (defvar org-ai-openai-chat-endpoint "https://api.openai.com/v1/chat/completions")
@@ -128,20 +144,28 @@ messages."
   :type 'string
   :group 'org-ai)
 
-(defun org-ai--openai-get-token ()
+(defcustom org-ai-anthropic-api-version "2023-06-01"
+  "API version for api.anthropic.com."
+  :type 'string
+  :group 'org-ai)
+
+(defun org-ai--openai-get-token (&optional service)
   "Try to get the openai token.
 Either from `org-ai-openai-api-token' or from auth-source."
   (or org-ai-openai-api-token
       (when org-ai-use-auth-source
-       (org-ai--openai-get-token-auth-source))
+       (org-ai--openai-get-token-auth-source service))
       (error "Please set `org-ai-openai-api-token' to your OpenAI API token or setup auth-source (see org-ai readme)")))
 
-(defun org-ai--openai-get-token-auth-source ()
+(defun org-ai--openai-get-token-auth-source (&optional service)
   "Retrieves the authentication token for the OpenAI service using auth-source."
   (require 'auth-source)
-  (let ((endpoint
-         (cond ((eq org-ai-service 'openai) "api.openai.com")
-               ((eq org-ai-service 'azure-openai) (strip-api-url org-ai-azure-openai-api-base)))))
+  (let* ((service (or service org-ai-service))
+         (endpoint (pcase service
+                     ('openai "api.openai.com")
+                     ('perplexity.ai "api.perplexity.ai")
+                     ('anthropic "api.anthropic.com")
+                     ('azure-openai (strip-api-url org-ai-azure-openai-api-base)))))
     (or (auth-source-pick-first-password :host endpoint :user "org-ai")
         (auth-source-pick-first-password :host endpoint :login "org-ai"))))
 
@@ -154,25 +178,34 @@ Either from `org-ai-openai-api-token' or from auth-source."
         (substring stripped-url 0 -1)
       stripped-url)))
 
-(defun org-ai--get-endpoint (messages)
+(defun org-ai--get-endpoint (messages &optional service)
   "Determine the correct endpoint based on the service and
 whether messages are provided."
-  (cond
-   ((eq org-ai-service 'azure-openai)
-    (format "%s/openai/deployments/%s%s/completions?api-version=%s"
-	    org-ai-azure-openai-api-base org-ai-azure-openai-deployment
-	    (if messages "/chat" "") org-ai-azure-openai-api-version))
-   (t
-    (if messages org-ai-openai-chat-endpoint org-ai-openai-completion-endpoint))))
+  (let ((service (or service org-ai-service)))
+    (cond
+     ((eq service 'azure-openai)
+      (format "%s/openai/deployments/%s%s/completions?api-version=%s"
+	      org-ai-azure-openai-api-base org-ai-azure-openai-deployment
+	      (if messages "/chat" "") org-ai-azure-openai-api-version))
+     ((eq service 'perplexity.ai)
+      "https://api.perplexity.ai/chat/completions")
+     ((eq service 'anthropic)
+      "https://api.anthropic.com/v1/messages")
+     (t
+      (if messages org-ai-openai-chat-endpoint org-ai-openai-completion-endpoint)))))
 
-(defun org-ai--get-headers ()
+(defun org-ai--get-headers (&optional service)
   "Determine the correct headers based on the service."
-  `(("Content-Type" . "application/json")
-    ,(cond
-      ((eq org-ai-service 'azure-openai)
-       `("api-key" . ,(org-ai--openai-get-token)))
-      (t
-       `("Authorization" . ,(encode-coding-string (string-join `("Bearer" ,(org-ai--openai-get-token)) " ") 'utf-8))))))
+  (let ((service (or service org-ai-service)))
+    `(("Content-Type" . "application/json")
+      ,@(cond
+        ((eq service 'azure-openai)
+         `(("api-key" . ,(org-ai--openai-get-token service))))
+        ((eq service 'anthropic)
+         `(("x-api-key" . ,(org-ai--openai-get-token service))
+           ("anthropic-version" . ,org-ai-anthropic-api-version)))
+        (t
+         `(("Authorization" . ,(encode-coding-string (string-join `("Bearer" ,(org-ai--openai-get-token service)) " ") 'utf-8))))))))
 
 (defvar org-ai--current-request-buffer-for-stream nil
   "Internal var that stores the current request buffer.
@@ -200,6 +233,9 @@ only contain fragments.")
 (defvar org-ai--chat-got-first-response nil)
 (make-variable-buffer-local 'org-ai--chat-got-first-response)
 
+(defvar org-ai--currently-inside-code-markers nil)
+(make-variable-buffer-local 'org-ai--currently-inside-code-markers)
+
 (defvar org-ai--url-buffer-last-position-marker nil
   "Local buffer var to store last read position.")
 ;; (make-variable-buffer-local 'org-ai--url-buffer-last-position-marker)
@@ -216,20 +252,18 @@ only contain fragments.")
 ;;    (goto-char (cadr (nth n org-ai--debug-data-raw)))
 ;;    (beginning-of-line)))
 
-(cl-defun org-ai-stream-completion (&optional &key prompt messages model max-tokens temperature top-p frequency-penalty presence-penalty context)
+(cl-defun org-ai-stream-completion (&optional &key prompt messages model max-tokens temperature top-p frequency-penalty presence-penalty service context)
   "Start a server-sent event stream.
 `PROMPT' is the query for completions `MESSAGES' is the query for
 chatgpt. `MODEL' is the model to use. `MAX-TOKENS' is the maximum
 number of tokens to generate. `TEMPERATURE' is the temperature of
 the distribution. `TOP-P' is the top-p value. `FREQUENCY-PENALTY'
 is the frequency penalty. `PRESENCE-PENALTY' is the presence
-penalty. `CONTEXT' is the context of the special block."
+penalty. `CONTEXT' is the context of the special block. Service
+is the ai cloud service such as 'openai or 'azure-openai."
   (let* ((context (or context (org-ai-special-block)))
          (buffer (current-buffer))
-         (info (org-ai-get-block-info context))
-         (callback (if messages
-                       (lambda (result) (org-ai--insert-chat-completion-response context buffer result))
-                     (lambda (result) (org-ai--insert-stream-completion-response context buffer result)))))
+         (info (org-ai-get-block-info context)))
     (cl-macrolet ((let-with-captured-arg-or-header-or-inherited-property
                     (definitions &rest body)
                     `(let ,(cl-loop for (sym . default-form) in definitions
@@ -247,20 +281,28 @@ penalty. `CONTEXT' is the context of the special block."
         (top-p)
         (temperature)
         (frequency-penalty)
-        (presence-penalty))
+        (presence-penalty)
+        (service))
        (setq org-ai--current-insert-position-marker nil)
        (setq org-ai--chat-got-first-response nil)
        (setq org-ai--debug-data nil)
        (setq org-ai--debug-data-raw nil)
-       (org-ai-stream-request :prompt prompt
-                              :messages messages
-                              :model model
-                              :max-tokens max-tokens
-                              :temperature temperature
-                              :top-p top-p
-                              :frequency-penalty frequency-penalty
-                              :presence-penalty presence-penalty
-                              :callback callback)))))
+       (setq org-ai--currently-inside-code-markers nil)
+       (setq service (if (stringp service) (org-ai--read-service-name service) service))
+       (let ((callback (cond
+                        ((eq service 'anthropic) (lambda (result) (org-ai--insert-chat-completion-response-anthropic context buffer result)))
+                        (messages (lambda (result) (org-ai--insert-chat-completion-response context buffer result)))
+                        (t (lambda (result) (org-ai--insert-stream-completion-response context buffer result))))))
+         (org-ai-stream-request :prompt prompt
+                                :messages messages
+                                :model model
+                                :max-tokens max-tokens
+                                :temperature temperature
+                                :top-p top-p
+                                :frequency-penalty frequency-penalty
+                                :presence-penalty presence-penalty
+                                :service service
+                                :callback callback))))))
 
 (defun org-ai--insert-stream-completion-response (context buffer &optional response)
   "Insert the response from the OpenAI API into the buffer.
@@ -293,8 +335,9 @@ from the OpenAI API."
 When `RESPONSE' is nil, it means we are done. `CONTEXT' is the
 context of the special block. `BUFFER' is the buffer to insert
 the response into."
-  (if response
 
+  (let ((finish-reason))
+    (when response
       ;; process response
       (if-let ((error (plist-get response 'error)))
           (if-let ((message (plist-get error 'message))) (error message) (error error))
@@ -311,45 +354,128 @@ the response into."
                 (backward-char))
 
               ;; insert text
-              (if-let* ((choices (or (alist-get 'choices response)
-                                     (plist-get response 'choices)))
-                        (choice (and (arrayp choices) (> (length choices) 0) (aref choices 0)))
-                        (delta (plist-get choice 'delta)))
-                  (cond
-                   ((plist-get delta 'role)
-                    (let ((role (plist-get delta 'role)))
-                      (progn
-                        (setq org-ai--current-chat-role role)
-                        (cond
-                         ((string= role "assistant")
-                          (insert "\n[AI]: "))
-                         ((string= role "user")
-                          (insert "\n[ME]: "))
-                         ((string= role "system")
-                          (insert "\n[SYS]: ")))
-                        (run-hook-with-args 'org-ai-after-chat-insertion-hook 'role role))))
-                   ((plist-get delta 'content)
-                    (let ((text (plist-get delta 'content)))
-                      (when (or org-ai--chat-got-first-response (not (string= (string-trim text) "")))
-                        (when (and (not org-ai--chat-got-first-response) (string-prefix-p "```" text))
-                          ;; start markdown codeblock responses on their own line
-                          (insert "\n"))
-                        (insert (decode-coding-string text 'utf-8))
-                        (run-hook-with-args 'org-ai-after-chat-insertion-hook 'text text))
-                      (setq org-ai--chat-got-first-response t)))))
+              (when-let* ((choices (or (alist-get 'choices response)
+                                       (plist-get response 'choices)))
+                          (choice (and (arrayp choices) (> (length choices) 0) (aref choices 0))))
+                (setq finish-reason (plist-get choice 'finish_reason))
+                (when-let ((delta (plist-get choice 'delta)))
+                  (when-let ((role (plist-get delta 'role)))
+                    (when (not (string= role org-ai--current-chat-role))
+                      (setq org-ai--current-chat-role role)
+                      (cond
+                       ((string= role "assistant")
+                        (insert "\n[AI]: "))
+                       ((string= role "user")
+                        (insert "\n[ME]: "))
+                       ((string= role "system")
+                        (insert "\n[SYS]: "))))
+                    (run-hook-with-args 'org-ai-after-chat-insertion-hook 'role role))
+                  (when-let ((text (plist-get delta 'content)))
+                    (when (or org-ai--chat-got-first-response (not (string= (string-trim text) "")))
+                      (when (and (not org-ai--chat-got-first-response) (string-prefix-p "```" text))
+                        ;; start markdown codeblock responses on their own line
+                        (insert "\n"))
+                      ;; track if we are inside code markers
+                      (setq org-ai--currently-inside-code-markers (and (not org-ai--currently-inside-code-markers)
+                                                                       (string-match-p "```" text)))
+                      (insert (decode-coding-string text 'utf-8))
+                      ;; "auto-fill"
+                      (when (and org-ai-auto-fill (not org-ai--currently-inside-code-markers))
+                        (fill-paragraph))
+                      ;; hook
+                      (run-hook-with-args 'org-ai-after-chat-insertion-hook 'text text))
+                    (setq org-ai--chat-got-first-response t))))
 
-              (setq org-ai--current-insert-position-marker (point-marker))))))
+              (setq org-ai--current-insert-position-marker (point-marker)))))))
 
     ;; insert new prompt and change position
     (with-current-buffer buffer
-      (when org-ai--current-insert-position-marker
-        (goto-char org-ai--current-insert-position-marker))
-      (let ((text "\n\n[ME]: "))
-        (insert text)
-        (run-hook-with-args 'org-ai-after-chat-insertion-hook 'end text))
-      (org-element-cache-reset))))
+      (when finish-reason
+        (save-excursion
+          (when org-ai--current-insert-position-marker
+            (goto-char org-ai--current-insert-position-marker))
 
-(cl-defun org-ai-stream-request (&optional &key prompt messages model max-tokens temperature top-p frequency-penalty presence-penalty callback)
+          ;; (message "inserting user prompt: %" (string= org-ai--current-chat-role "user"))
+          (let ((text "\n\n[ME]: "))
+            (insert text)
+            (run-hook-with-args 'org-ai-after-chat-insertion-hook 'end text)
+            (setq org-ai--current-insert-position-marker (point-marker))))
+
+        (org-element-cache-reset)
+
+        (when org-ai-jump-to-end-of-block (goto-char org-ai--current-insert-position-marker))))))
+
+(defun org-ai--insert-chat-completion-response-anthropic (context buffer &optional response)
+  "`RESPONSE' is one JSON message of the stream response.
+When `RESPONSE' is nil, it means we are done. `CONTEXT' is the
+context of the special block. `BUFFER' is the buffer to insert
+the response into."
+
+  (when response
+    ;; process response
+    (if-let ((error (plist-get response 'error)))
+        (if-let ((message (plist-get error 'message))) (error message) (error error))
+      (with-current-buffer buffer
+        (let ((pos (or (and org-ai--current-insert-position-marker
+                            (marker-position org-ai--current-insert-position-marker))
+                       (org-element-property :contents-end context)))
+              end-p)
+          (save-excursion
+            (goto-char pos)
+
+            ;; make sure we have enough space at end of block, don't write on same line
+            (when (string-suffix-p "#+end_ai" (buffer-substring-no-properties (point) (line-end-position)))
+              (insert "\n")
+              (backward-char))
+
+            ;; insert text
+            (pcase (plist-get response 'type)
+              ("content_block_start"
+               (insert "\n[AI]: ")
+               (run-hook-with-args 'org-ai-after-chat-insertion-hook 'role "assistant"))
+
+              ("content_block_delta"
+               (when-let ((text (plist-get (plist-get response 'delta) 'text)))
+                 (when (or org-ai--chat-got-first-response (not (string= (string-trim text) "")))
+                   (when (and (not org-ai--chat-got-first-response) (string-prefix-p "```" text))
+                     ;; start markdown codeblock responses on their own line
+                     (insert "\n"))
+                   ;; track if we are inside code markers
+                   (setq org-ai--currently-inside-code-markers (and (not org-ai--currently-inside-code-markers)
+                                                                    (string-match-p "```" text)))
+                   (insert (decode-coding-string text 'utf-8))
+                   ;; "auto-fill"
+                   (when (and org-ai-auto-fill (not org-ai--currently-inside-code-markers))
+                     (fill-paragraph))
+                   ;; hook
+                   (run-hook-with-args 'org-ai-after-chat-insertion-hook 'text text))
+                 (setq org-ai--chat-got-first-response t)))
+
+              ("content_block_stop" nil)
+
+              ("message_delta"
+               (let ((finish-reason (plist-get (plist-get response 'delta) 'stop_reason))
+                     (output-tokens (plist-get (plist-get response 'usage) 'output_tokens)))
+                 (message "finished reason=%s tokens=%s" finish-reason output-tokens)))
+
+              ("message_stop"
+               (with-current-buffer buffer
+                 (when org-ai--current-insert-position-marker
+                   (goto-char org-ai--current-insert-position-marker))
+
+                 ;; (message "inserting user prompt: %" (string= org-ai--current-chat-role "user"))
+                 (let ((text "\n\n[ME]: "))
+                   (insert text)
+                   (run-hook-with-args 'org-ai-after-chat-insertion-hook 'end text))
+                 (org-element-cache-reset)
+                 (setq end-p t))))
+
+            (setq org-ai--current-insert-position-marker (point-marker)))
+
+          (when (and org-ai-jump-to-end-of-block end-p)
+            (goto-char org-ai--current-insert-position-marker)))))))
+
+(cl-defun org-ai-stream-request (&optional &key prompt messages model max-tokens temperature top-p frequency-penalty presence-penalty service callback)
   "Send a request to the OpenAI API.
 `PROMPT' is the query for completions `MESSAGES' is the query for
 chatgpt. `CALLBACK' is the callback function. `MODEL' is the
@@ -357,9 +483,9 @@ model to use. `MAX-TOKENS' is the maximum number of tokens to
 generate. `TEMPERATURE' is the temperature of the distribution.
 `TOP-P' is the top-p value. `FREQUENCY-PENALTY' is the frequency
 penalty. `PRESENCE-PENALTY' is the presence penalty."
-  (let* ((url-request-extra-headers (org-ai--get-headers))
+  (let* ((url-request-extra-headers (org-ai--get-headers service))
          (url-request-method "POST")
-         (endpoint (org-ai--get-endpoint messages))
+         (endpoint (org-ai--get-endpoint messages service))
          (url-request-data (org-ai--payload :prompt prompt
 					    :messages messages
 					    :model model
@@ -368,9 +494,10 @@ penalty. `PRESENCE-PENALTY' is the presence penalty."
 					    :top-p top-p
 					    :frequency-penalty frequency-penalty
 					    :presence-penalty presence-penalty
+                                            :service service
                                             :stream t)))
 
-    ;; (message "REQUEST %s" url-request-data)
+    ;; (message "REQUEST %s %s" endpoint url-request-data)
 
     (setq org-ai--current-request-callback callback)
 
@@ -389,7 +516,7 @@ penalty. `PRESENCE-PENALTY' is the presence penalty."
 
     org-ai--current-request-buffer-for-stream))
 
-(cl-defun org-ai-chat-request (&optional &key messages model max-tokens temperature top-p frequency-penalty presence-penalty callback)
+(cl-defun org-ai-chat-request (&optional &key messages model max-tokens temperature top-p frequency-penalty presence-penalty service callback)
   "Send a request to the OpenAI API. Do not stream.
 `MESSAGES' is the query for chatgpt.
 `CALLBACK' is the callback function.
@@ -399,9 +526,9 @@ penalty. `PRESENCE-PENALTY' is the presence penalty."
 `TOP-P' is the top-p value.
 `FREQUENCY-PENALTY' is the frequency penalty.
 `PRESENCE-PENALTY' is the presence penalty."
-  (let* ((url-request-extra-headers (org-ai--get-headers))
+  (let* ((url-request-extra-headers (org-ai--get-headers service))
          (url-request-method "POST")
-         (endpoint (org-ai--get-endpoint messages))
+         (endpoint (org-ai--get-endpoint messages service))
          (url-request-data (org-ai--payload :messages messages
 					    :model model
 					    :max-tokens max-tokens
@@ -409,6 +536,7 @@ penalty. `PRESENCE-PENALTY' is the presence penalty."
 					    :top-p top-p
 					    :frequency-penalty frequency-penalty
 					    :presence-penalty presence-penalty
+                                            :service service
                                             :stream nil)))
 
     ;; (message "REQUEST %s" url-request-data)
@@ -473,7 +601,7 @@ penalty. `PRESENCE-PENALTY' is the presence penalty."
         (with-current-buffer buf
           (read-only-mode -1)
           (erase-buffer)
-          (insert "Error from OpenAI API:\n\n")
+          (insert "Error from the service API:\n\n")
           (insert error-message)
           (display-buffer buf)
           (goto-char (point-min))
@@ -484,7 +612,7 @@ penalty. `PRESENCE-PENALTY' is the presence penalty."
           t))
     (error nil)))
 
-(cl-defun org-ai--payload (&optional &key prompt messages model max-tokens temperature top-p frequency-penalty presence-penalty stream)
+(cl-defun org-ai--payload (&optional &key prompt messages model max-tokens temperature top-p frequency-penalty presence-penalty service stream)
   "Create the payload for the OpenAI API.
 `PROMPT' is the query for completions `MESSAGES' is the query for
 chatgpt. `MODEL' is the model to use. `MAX-TOKENS' is the
@@ -493,18 +621,30 @@ temperature of the distribution. `TOP-P' is the top-p value.
 `FREQUENCY-PENALTY' is the frequency penalty. `PRESENCE-PENALTY'
 is the presence penalty.
 `STREAM' is a boolean indicating whether to stream the response."
-  (let* ((input (if messages `(messages . ,messages) `(prompt . ,prompt)))
-         ;; TODO yet unsupported properties: n, stop, logit_bias, user
-         (data (map-filter (lambda (x _) x)
-                           `(,input
-                             (model . ,model)
-                             ,@(when stream            `((stream . ,stream)))
-                             ,@(when max-tokens        `((max_tokens . ,max-tokens)))
-                             ,@(when temperature       `((temperature . ,temperature)))
-                             ,@(when top-p             `((top_p . ,top-p)))
-                             ,@(when frequency-penalty `((frequency_penalty . ,frequency-penalty)))
-                             ,@(when presence-penalty  `((presence_penalty . ,presence-penalty)))))))
-    (encode-coding-string (json-encode data) 'utf-8)))
+  (let ((extra-system-prompt))
+
+    (when (eq service 'anthropic)
+      (when (string-equal (plist-get (aref messages 0) :role) "system")
+        (setq extra-system-prompt (plist-get (aref messages 0) :content))
+        (cl-shiftf messages (cl-subseq messages 1)))
+      (setq max-tokens (or max-tokens 4096)))
+
+   (let* ((input (if messages `(messages . ,messages) `(prompt . ,prompt)))
+          ;; TODO yet unsupported properties: n, stop, logit_bias, user
+          (data (map-filter (lambda (x _) x)
+                            `(,input
+                              (model . ,model)
+                              ,@(when stream            `((stream . ,stream)))
+                              ,@(when max-tokens        `((max_tokens . ,max-tokens)))
+                              ,@(when temperature       `((temperature . ,temperature)))
+                              ,@(when top-p             `((top_p . ,top-p)))
+                              ,@(when frequency-penalty `((frequency_penalty . ,frequency-penalty)))
+                              ,@(when presence-penalty  `((presence_penalty . ,presence-penalty)))))))
+
+     (when extra-system-prompt
+       (setq data (append data `((system . ,extra-system-prompt)))))
+
+     (encode-coding-string (json-encode data) 'utf-8))))
 
 (defun org-ai--url-request-on-change-function (_beg _end _len)
   "Look into the url-request buffer and manually extracts JSON stream responses.
