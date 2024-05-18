@@ -1,3 +1,6 @@
 [submodule "local/solarized-emacs"]
 	path = local/solarized-emacs
 	url = git@github.com:bbatsov/solarized-emacs.git
+[submodule "local/copilot.el"]
+	path = local/copilot.el
+	url = git@github.com:copilot-emacs/copilot.el.git

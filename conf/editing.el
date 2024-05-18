@@ -449,11 +449,8 @@
   (add-hook 'org-mode-hook 'org-indent-mode)
   :config
   (add-to-list 'auto-mode-alist '("\\.org\\'" . org-mode))
-  (when (file-directory-p "~/projects/span/notes/diary")
-    (setq org-agenda-files '("~/projects/span/notes/diary")))
-  (when (file-directory-p "~/projects/personal/notes")
-    (setq org-agenda-files '("~/projects/span/notes")))
-  (setq org-todo-keywords '((sequence "TODO" "IN-PROGRESS" "SKIP" "BLOCKED" "DONE"))))
+  (setq org-agenda-files '("~/projects/personal/notes/diary" "~/projects/span/notes"))
+  (setq org-todo-keywords '((sequence "TODO" "IN-PROGRESS" "BLOCKED" "DONE" "SKIP"))))
 
 (use-package org-roam
   :after org)
@@ -469,4 +466,35 @@
   (setq org-ai-openai-api-token
         (or
          (getenv "OPENAI_KEY") "OPENAI_KEY not set"))
-  (setq org-ai-default-chat-model "gpt-4-turbo-2024-04-09"))
+  (setq org-ai-default-chat-model "gpt-4-turbo"))
+
+;; Installed for copilot stuff
+
+(use-package s :ensure t)
+(use-package dash :ensure t)
+(use-package editorconfig :ensure t)
+(use-package company :ensure t)
+
+(defun rk/copilot-quit ()
+  "Run `copilot-clear-overlay' or `keyboard-quit'. If copilot is
+cleared, make sure the overlay doesn't come back too soon."
+  (interactive)
+  (condition-case err
+      (when copilot--overlay
+        (lexical-let ((pre-copilot-disable-predicates copilot-disable-predicates))
+          (setq copilot-disable-predicates (list (lambda () t)))
+          (copilot-clear-overlay)
+          (run-with-idle-timer
+           1.0
+           nil
+           (lambda ()
+             (setq copilot-disable-predicates pre-copilot-disable-predicates)))))
+    (error handler)))
+
+(defun rk/no-copilot-mode ()
+  "Helper for `rk/no-copilot-modes'."
+  (copilot-mode -1))
+
+(use-package copilot
+  :load-path (lambda () (expand-file-name "local/copilot.el" user-emacs-directory))
+  :diminish)
