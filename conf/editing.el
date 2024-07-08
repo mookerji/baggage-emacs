@@ -450,7 +450,16 @@
   :config
   (add-to-list 'auto-mode-alist '("\\.org\\'" . org-mode))
   (setq org-agenda-files '("~/projects/personal/notes/diary" "~/projects/span/notes"))
-  (setq org-todo-keywords '((sequence "TODO" "IN-PROGRESS" "BLOCKED" "DONE" "SKIP"))))
+  (setq org-todo-keywords '((sequence "TODO" "IN-PROGRESS" "BLOCKED" "DONE" "SKIP")))
+  (setq org-todo-keyword-faces
+        '(
+          ("IN-PROGRESS" :foreground "orange" :weight bold)
+          ("BLOCKED" :foreground "red" :weight bold)
+          ("DONE" :foreground "brown" :weight bold)
+          ("SKIP" :foreground "brown" :weight bold))
+        )
+  )
+
 
 (use-package org-roam
   :after org)
@@ -466,7 +475,7 @@
   (setq org-ai-openai-api-token
         (or
          (getenv "OPENAI_KEY") "OPENAI_KEY not set"))
-  (setq org-ai-default-chat-model "gpt-4-turbo"))
+  (setq org-ai-default-chat-model "gpt-4o"))
 
 ;; Installed for copilot stuff
 
