@@ -1,7 +1,7 @@
-(define-package "org-ai" "20240513.1009" "Use ChatGPT and other LLMs in org-mode and beyond"
+(define-package "org-ai" "20240704.2212" "Use ChatGPT and other LLMs in org-mode and beyond"
   '((emacs "27.1")
     (websocket "1.15"))
-  :commit "66f248cb24fd7f5b19d64974c3d407a288e3d51a" :authors
+  :commit "5f8bf87aa5f6b7f685a3948481a5c6ab1ddc203c" :authors
   '(("Robert Krahn" . "robert@kra.hn"))
   :maintainers
   '(("Robert Krahn" . "robert@kra.hn"))
