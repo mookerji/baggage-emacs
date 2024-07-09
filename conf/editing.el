@@ -464,6 +464,20 @@
 (use-package org-roam
   :after org)
 
+;; (use-package org-ai
+;;   :ensure t
+;;   :commands (org-ai-mode
+;;              org-ai-global-mode)
+;;   :init
+;;   (add-hook 'org-mode-hook #'org-ai-mode)
+;;   (org-ai-global-mode)
+;;   :config
+;;   (setq org-ai-openai-api-token
+;;         (or
+;;          (getenv "OPENAI_KEY") "OPENAI_KEY not set"))
+;;   (setq org-ai-default-chat-model "gpt-4o"))
+
+
 (use-package org-ai
   :ensure t
   :commands (org-ai-mode
@@ -472,10 +486,11 @@
   (add-hook 'org-mode-hook #'org-ai-mode)
   (org-ai-global-mode)
   :config
-  (setq org-ai-openai-api-token
-        (or
-         (getenv "OPENAI_KEY") "OPENAI_KEY not set"))
-  (setq org-ai-default-chat-model "gpt-4o"))
+  (setq org-ai-service 'anthropic)
+  (setq org-ai-default-chat-model "claude-3-5-sonnet-20240620")
+  (setq org-ai-anthropic-api-version "2023-06-01")
+  (setq org-ai-openai-api-token (or (getenv "ANTHROPIC_KEY") "ANTHROPIC_KEY not set")))
+
 
 ;; Installed for copilot stuff
 
