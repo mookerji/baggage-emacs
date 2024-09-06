@@ -145,17 +145,23 @@
   (with-eval-after-load 'rust-mode
     (add-hook 'flycheck-mode-hook #'flycheck-rust-setup)))
 
+(use-package rust-mode
+  :ensure t
+  :init
+  (setq rust-mode-treesitter-derive t))
+
 ;; Requires installation of rust-analyzer:
 ;; $ git clone https://github.com/rust-lang/rust-analyzer.git && cd rust-analyzer
 ;; $ cargo xtask install --server
 ;; or $ rustup component add rust-analyzer?
 
 (use-package rustic
-  :ensure
+  :ensure t
+  :after (rust-mode)
   :init
   (add-hook 'rust-mode-hook 'eglot-ensure)
   :hook
-  (eglot-managed-mode . (lambda () (eglot-inlay-hints-mode -1)))  
+  (eglot-managed-mode . (lambda () (eglot-inlay-hints-mode -1)))
   :config
   (setq eldoc-idle-delay 0.75)
   (setq eglot-events-buffer-size 0)

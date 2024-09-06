@@ -217,6 +217,19 @@
 (use-package csv-mode
   :mode "\\.csv\\'")
 
+
+(use-package tree-sitter-langs
+  :ensure t
+  :defer t)
+
+(use-package tree-sitter
+  :ensure t
+  :after tree-sitter-langs
+  :config
+  (global-tree-sitter-mode)
+  (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
+
+
 ;; search
 
 (use-package ripgrep)
@@ -231,8 +244,6 @@
 ;; Hooks
 
 (add-hook 'before-save-hook 'delete-trailing-whitespace)
-
-(provide 'editing)
 
 ;; Emoji?
 
@@ -432,7 +443,14 @@
 ;; - https://github.com/james-stoup/emacs-org-mode-tutorial
 ;; - https://github.com/jwiegley/dot-emacs/blob/master/init.org#org-mode
 
-(use-package org-super-agenda)
+(use-package org-super-agenda
+  :after org
+  :custom
+  (org-super-agenda-groups '((:auto-tags t)))
+  (org-super-agenda-header-separator "")
+  (org-super-agenda-hide-empty-groups t)
+  :config
+  (org-super-agenda-mode))
 
 (defun fix-org-headers ()
   (dolist (face '(org-level-1
@@ -486,6 +504,7 @@
   (add-hook 'org-mode-hook #'org-ai-mode)
   (org-ai-global-mode)
   :config
+  (setq org-ai-auto-fill t)
   (setq org-ai-service 'anthropic)
   (setq org-ai-default-chat-model "claude-3-5-sonnet-20240620")
   (setq org-ai-anthropic-api-version "2023-06-01")
@@ -494,31 +513,7 @@
 
 ;; Installed for copilot stuff
 
-(use-package s :ensure t)
-(use-package dash :ensure t)
 (use-package editorconfig :ensure t)
 (use-package company :ensure t)
 
-(defun rk/copilot-quit ()
-  "Run `copilot-clear-overlay' or `keyboard-quit'. If copilot is
-cleared, make sure the overlay doesn't come back too soon."
-  (interactive)
-  (condition-case err
-      (when copilot--overlay
-        (lexical-let ((pre-copilot-disable-predicates copilot-disable-predicates))
-          (setq copilot-disable-predicates (list (lambda () t)))
-          (copilot-clear-overlay)
-          (run-with-idle-timer
-           1.0
-           nil
-           (lambda ()
-             (setq copilot-disable-predicates pre-copilot-disable-predicates)))))
-    (error handler)))
-
-(defun rk/no-copilot-mode ()
-  "Helper for `rk/no-copilot-modes'."
-  (copilot-mode -1))
-
-(use-package copilot
-  :load-path (lambda () (expand-file-name "local/copilot.el" user-emacs-directory))
-  :diminish)
+(provide 'editing)
