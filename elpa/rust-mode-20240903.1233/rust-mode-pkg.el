@@ -1,6 +1,6 @@
-(define-package "rust-mode" "20240329.836" "A major-mode for editing Rust source code"
+(define-package "rust-mode" "20240903.1233" "A major-mode for editing Rust source code"
   '((emacs "25.1"))
-  :commit "b2b18aa6c135d9b06242b3d081d94fe0c0cb8e86" :authors
+  :commit "c87f6f82bd484fb1c15009c8a3518ebb62942605" :authors
   '(("Mozilla" . "rust-mode@noreply.github.com"))
   :maintainers
   '(("Mozilla" . "rust-mode@noreply.github.com"))

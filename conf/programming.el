@@ -138,6 +138,10 @@
   (subword-mode 1)
   (company-mode -1))
 
+
+(use-package poetry
+  :ensure t)
+
 ;; languages: rust (Requires: rustc, cargo, rustfmt, rls)
 
 (use-package flycheck-rust
@@ -145,10 +149,12 @@
   (with-eval-after-load 'rust-mode
     (add-hook 'flycheck-mode-hook #'flycheck-rust-setup)))
 
+;; Warning (treesit): Cannot activate tree-sitter, because language grammar for rust is unavailable (not-found): (libtree-sitter-rust.so libtree-sitter-rust.so.0 libtree-sitter-rust.so.0.0 libtree-sitter-rust.dylib libtree-sitter-rust.dylib.0 libtree-sitter-rust.dylib.0.0) No such file or directory
+
 (use-package rust-mode
   :ensure t
-  :init
-  (setq rust-mode-treesitter-derive t))
+  ;;:init (setq rust-mode-treesitter-derive t)
+  )
 
 ;; Requires installation of rust-analyzer:
 ;; $ git clone https://github.com/rust-lang/rust-analyzer.git && cd rust-analyzer

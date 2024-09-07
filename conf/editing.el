@@ -222,6 +222,7 @@
   :ensure t
   :defer t)
 
+;; brew install libgccjit
 (use-package tree-sitter
   :ensure t
   :after tree-sitter-langs
