@@ -507,7 +507,7 @@
   :config
   (setq org-ai-auto-fill t)
   (setq org-ai-service 'anthropic)
-  (setq org-ai-default-chat-model "claude-3-5-sonnet-20240620")
+  (setq org-ai-default-chat-model "claude-3-5-sonnet-latest")
   (setq org-ai-anthropic-api-version "2023-06-01")
   (setq org-ai-openai-api-token (or (getenv "ANTHROPIC_KEY") "ANTHROPIC_KEY not set")))
 
