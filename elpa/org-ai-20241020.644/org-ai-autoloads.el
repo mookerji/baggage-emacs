@@ -56,7 +56,7 @@ Those files will then be concatenated and passed to org-ai with
 your prompt.
 
 (fn &optional BASE-DIR)" t)
-(register-definition-prefixes "org-ai-on-project" '("org-ai-on-"))
+(register-definition-prefixes "org-ai-on-project" '("foo" "org-ai-"))
 
 
 ;;; Generated autoloads from org-ai-oobabooga.el

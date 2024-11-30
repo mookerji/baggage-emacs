@@ -135,7 +135,8 @@ Will always return t if `org-ai-talk-confirm-speech-input' is nil."
     (let ((output-buffer (or output-buffer (current-buffer)))
           (start-pos-marker (point-marker)))
       (let* ((sys-input (if sys-prompt (format "[SYS]: %s\n" sys-prompt)))
-             (input (format "%s\n[ME]: %s" sys-input prompt)))
+             (input (format "%s\n[ME]: %s" sys-input prompt))
+             (callback-called nil))
         (with-current-buffer output-buffer
           (setq org-ai-prompt--last-insertion-marker (point-marker)))
         (org-ai-stream-request :messages (org-ai--collect-chat-messages input)
@@ -143,7 +144,8 @@ Will always return t if `org-ai-talk-confirm-speech-input' is nil."
                                :callback (lambda (response)
                                            (when (cl-some (lambda (ea) (eq 'stop (org-ai--response-type ea)))
                                                           (org-ai--insert-stream-response nil output-buffer response nil))
-                                             (when callback
+                                             (when (and callback (not callback-called))
+                                               (setq callback-called t)
                                                (with-current-buffer
                                                    output-buffer (funcall callback))))))))))
 
@@ -381,7 +383,7 @@ be guessed from the current major mode."
 
   (org-ai-with-input-or-spoken-text "How should the code be modified? " how
     (let ((text-prompt-fn (lambda (code) (format "
-In the following I will show you an instruction and then a code snippet. I want you to modify the code snippet based on the instruction. Only output the modified code. Do not include any explanation.
+In the following I will show you an instruction and then a code snippet. I want you to modify the code snippet based on the instruction. Only output the modified code. Do not include any explanation or backtick fences or language/syntax-highlighting identifiers in your response.
 
 Here is the instruction:
 %s

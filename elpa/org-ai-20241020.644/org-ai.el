@@ -1,10 +1,11 @@
 ;;; org-ai.el --- Use ChatGPT and other LLMs in org-mode and beyond -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2023, 2024 Robert Krahn
+;; Copyright (C) 2023, 2024 Robert Krahn and contributers
 
 ;; Author: Robert Krahn <robert@kra.hn>
 ;; URL: https://github.com/rksm/org-ai
-;; Version: 0.5.0
+;; Package-Version: 20241020.644
+;; Package-Revision: 5adfde1bc7db
 ;; Package-Requires: ((emacs "27.1") (websocket "1.15"))
 
 ;; This file is NOT part of GNU Emacs.

@@ -506,13 +506,26 @@
   (org-ai-global-mode)
   :config
   (setq org-ai-auto-fill t)
-  (setq org-ai-service 'anthropic)
-  (setq org-ai-default-chat-model "claude-3-5-sonnet-latest")
   (setq org-ai-anthropic-api-version "2023-06-01")
-  (setq org-ai-openai-api-token (or (getenv "ANTHROPIC_KEY") "ANTHROPIC_KEY not set")))
+  (setq org-ai-service 'anthropic)
+  (setq org-ai-default-chat-model "claude-3-5-sonnet-20241022")
+  (setq org-ai-openai-api-token (or (getenv "ANTHROPIC_KEY") "ANTHROPIC_KEY not set"))
+  ;; (setq org-ai-service 'openai)
+  ;; (setq org-ai-default-chat-model "gpt-4o")
+  ;; (setq org-ai-openai-api-token
+  ;;       (or
+  ;;        (getenv "OPENAI_KEY") "OPENAI_KEY not set"))
+  )
 
 
 ;; Installed for copilot stuff
+
+(use-package gptel
+  :ensure t
+  :config
+  (setq gptel-api-key (or (getenv "ANTHROPIC_KEY") "ANTHROPIC_KEY not set"))
+  (setq gptel-model "claude-3-5-sonnet-20241022"))
+
 
 (use-package editorconfig :ensure t)
 (use-package company :ensure t)
