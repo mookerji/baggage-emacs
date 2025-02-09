@@ -28,6 +28,8 @@ evaluate `gptel-mode'.
 The mode's hook is called both when the mode is enabled and when
 it is disabled.
 
+\\{gptel-mode-map}
+
 (fn &optional ARG)" t)
 (autoload 'gptel-send "gptel" "\
 Submit this prompt to the current LLM backend.
@@ -132,18 +134,23 @@ Get the list of all active context overlays.")
 ;;; Generated autoloads from gptel-curl.el
 
 (autoload 'gptel-curl-get-response "gptel-curl" "\
-Retrieve response to prompt in INFO.
+Fetch response to prompt in state FSM from the LLM using Curl.
 
-INFO is a plist with the following keys:
-- :data (the data being sent)
-- :buffer (the gptel buffer)
+FSM is the state machine driving this request.
+
+FSM is the state machine driving this request.  Its INFO slot
+contains the data required for setting up the request.  INFO is a
+plist with the following keys, among others:
+- :data     (the data being sent)
+- :buffer   (the gptel buffer)
 - :position (marker at which to insert the response).
+- :callback (optional, the request callback)
 
 Call CALLBACK with the response and INFO afterwards.  If omitted
 the response is inserted into the current buffer after point.
 
-(fn INFO &optional CALLBACK)")
-(register-definition-prefixes "gptel-curl" '("gptel-"))
+(fn FSM)")
+(register-definition-prefixes "gptel-curl" '("gptel-curl--"))
 
 
 ;;; Generated autoloads from gptel-gemini.el
@@ -353,7 +360,7 @@ ENDPOINT (optional) is the API endpoint for completions, defaults to
 \"/v1/chat/completions\".
 
 HEADER (optional) is for additional headers to send with each
-request.  It should be an alist or a function that retuns an
+request.  It should be an alist or a function that returns an
 alist, like:
  ((\"Content-Type\" . \"application/json\"))
 
@@ -453,17 +460,12 @@ Example:
  :protocol \"http\"
  :host \"localhost:4891\"
  :models \\='(mistral-7b-openorca.Q4_0.gguf))")
-(register-definition-prefixes "gptel-openai" '("gptel--"))
+(register-definition-prefixes "gptel-openai" '("gptel-"))
 
 
-;;; Generated autoloads from gptel-org.el
+;;; Generated autoloads from gptel-openai-extras.el
 
-(register-definition-prefixes "gptel-org" '("gptel-"))
-
-
-;;; Generated autoloads from gptel-privategpt.el
-
-(autoload 'gptel-make-privategpt "gptel-privategpt" "\
+(autoload 'gptel-make-privategpt "gptel-openai-extras" "\
 Register an Privategpt API-compatible backend for gptel with NAME.
 
 Keyword arguments:
@@ -500,12 +502,46 @@ for.
 
 (fn NAME &key CURL-ARGS STREAM KEY REQUEST-PARAMS (HEADER (lambda nil (when-let (key (gptel--get-api-key)) \\=`((\"Authorization\" \\=\\, (concat \"Bearer \" key)))))) (HOST \"localhost:8001\") (PROTOCOL \"http\") (MODELS \\='(private-gpt)) (ENDPOINT \"/v1/chat/completions\") (CONTEXT t) (SOURCES t))")
 (function-put 'gptel-make-privategpt 'lisp-indent-function 1)
-(register-definition-prefixes "gptel-privategpt" '("gptel--privategpt-parse-sources"))
+(autoload 'gptel-make-perplexity "gptel-openai-extras" "\
+Register a Perplexity backend for gptel with NAME.
+
+Keyword arguments:
+
+CURL-ARGS (optional) is a list of additional Curl arguments.
+
+HOST (optional) is the API host, \"api.perplexity.ai\" by default.
+
+MODELS is a list of available model names.
+
+STREAM is a boolean to toggle streaming responses.
+
+PROTOCOL (optional) specifies the protocol, https by default.
+
+ENDPOINT (optional) is the API endpoint for completions.
+
+HEADER (optional) is for additional headers to send with each
+request. It should be an alist or a function that returns an
+alist.
+
+KEY is a variable whose value is the API key, or function that
+returns the key.
+
+REQUEST-PARAMS (optional) is a plist of additional HTTP request
+parameters.
+
+(fn NAME &key CURL-ARGS STREAM KEY (HEADER (lambda nil (when-let (key (gptel--get-api-key)) \\=`((\"Authorization\" \\=\\, (concat \"Bearer \" key)))))) (HOST \"api.perplexity.ai\") (PROTOCOL \"https\") (MODELS \\='(sonar sonar-pro)) (ENDPOINT \"/chat/completions\") REQUEST-PARAMS)")
+(function-put 'gptel-make-perplexity 'lisp-indent-function 1)
+(register-definition-prefixes "gptel-openai-extras" '("gptel--p"))
+
+
+;;; Generated autoloads from gptel-org.el
+
+(register-definition-prefixes "gptel-org" '("gptel-"))
 
 
 ;;; Generated autoloads from gptel-rewrite.el
 
- (autoload 'gptel-rewrite-menu "gptel-rewrite" nil t)
+ (autoload 'gptel-rewrite "gptel-rewrite" nil t)
 (register-definition-prefixes "gptel-rewrite" '("gptel-"))
 
 
@@ -513,6 +549,7 @@ for.
 
  (autoload 'gptel-menu "gptel-transient" nil t)
  (autoload 'gptel-system-prompt "gptel-transient" nil t)
+ (autoload 'gptel-tools "gptel-transient" nil t)
 (register-definition-prefixes "gptel-transient" '("gptel-"))
 
 ;;; End of scraped data
