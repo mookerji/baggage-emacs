@@ -521,10 +521,21 @@
 ;; Installed for copilot stuff
 
 (use-package gptel
-  :ensure t
+  :custom
+  (gptel-model 'claude-3-5-sonnet-20241022)
   :config
-  (setq gptel-api-key (or (getenv "ANTHROPIC_KEY") "ANTHROPIC_KEY not set"))
-  (setq gptel-model "claude-3-5-sonnet-20241022"))
+  (defun gptel-api-key ()
+    (setq gptel-api-key (or (getenv "ANTHROPIC_KEY") "ANTHROPIC_KEY not set")))
+  (setq
+   gptel-backend (gptel-make-anthropic "Claude"
+                   :stream t
+                   :key #'gptel-api-key)))
+
+
+(use-package elysium
+  :custom
+  (elysium-window-size 0.33)
+  (elysium-window-style 'vertical))
 
 
 (use-package editorconfig :ensure t)
