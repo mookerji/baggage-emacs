@@ -508,7 +508,7 @@
   (setq org-ai-auto-fill t)
   (setq org-ai-anthropic-api-version "2023-06-01")
   (setq org-ai-service 'anthropic)
-  (setq org-ai-default-chat-model "claude-3-5-sonnet-20241022")
+  (setq org-ai-default-chat-model "claude-3-7-sonnet-2025021")
   (setq org-ai-openai-api-token (or (getenv "ANTHROPIC_KEY") "ANTHROPIC_KEY not set"))
   ;; (setq org-ai-service 'openai)
   ;; (setq org-ai-default-chat-model "gpt-4o")
@@ -522,7 +522,7 @@
 
 (use-package gptel
   :custom
-  (gptel-model 'claude-3-5-sonnet-20241022)
+  (gptel-model 'claude-3-7-sonnet-20250219)
   :config
   (defun gptel-api-key ()
     (setq gptel-api-key (or (getenv "ANTHROPIC_KEY") "ANTHROPIC_KEY not set")))
@@ -532,13 +532,45 @@
                    :key #'gptel-api-key)))
 
 
+(require 'gptel-anthropic)
+
+(unless (alist-get 'claude-3-7-sonnet-20250219 gptel--anthropic-models)
+  (add-to-list 'gptel--anthropic-models
+               '(claude-3-7-sonnet-20250219
+                 :description "Highest level of intelligence and capability" :capabilities
+                 (media tool-use cache)
+                 :mime-types
+                 ("image/jpeg" "image/png" "image/gif" "image/webp" "application/pdf")
+                 :context-window 200 :input-cost 3 :output-cost 15 :cutoff-date "2024-11")))
+
+
 (use-package elysium
   :custom
   (elysium-window-size 0.33)
   (elysium-window-style 'vertical))
 
 
+(unless (package-installed-p 'aider)
+  (package-vc-install
+   '(aider :url "https://github.com/tninja/aider.el"
+           :branch "main")))
+
+(use-package aider
+  :config
+  (setq aider-args '("--model" "anthropic/claude-3-5-sonnet-20241022"))
+  (setenv "ANTHROPIC_API_KEY" (or (getenv "ANTHROPIC_KEY") "ANTHROPIC_KEY not set"))
+  (global-set-key (kbd "C-c a") 'aider-transient-menu))
+
 (use-package editorconfig :ensure t)
 (use-package company :ensure t)
+
+
+(unless (package-installed-p 'wgsl-mode)
+  (package-vc-install
+   '(wgsl-mode :url "https://github.com/acowley/wgsl-mode"
+               :branch "master")))
+
+(use-package wgsl-mode
+  :mode "\\.wgsl\\'")
 
 (provide 'editing)
